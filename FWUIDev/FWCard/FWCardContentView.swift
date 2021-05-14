@@ -22,10 +22,21 @@ struct FWCardContentView: View {
         TabView(selection: selection) {
             ZStack {
                 Color.gray.opacity(0.4).edgesIgnoringSafeArea(.all)
-                FWCardView(cardState: cardState) {
-                    ZStack {
-                        Color.purple
-                        Text("X").foregroundColor(.white)
+                FWCardView(cardState: $cardState) {
+                    NavigationView {
+                        ZStack {
+                            Color.purple
+                            Text("X").foregroundColor(.white)
+                        }
+                                .navigationTitle("Sliding Card")
+                                .navigationBarItems(
+                                        leading: Button("Collapse") {
+                                            cardState = .collapsed
+                                        },
+                                        trailing: Button("Partial") {
+
+                                        }
+                                )
                     }
                 }
             }

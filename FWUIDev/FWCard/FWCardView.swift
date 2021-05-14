@@ -6,52 +6,62 @@ import Foundation
 import SwiftUI
 
 struct FWCardView<CardContent: View>: View {
-    var cardState: FWCardState = .full
+    @Binding var cardState: FWCardState
     var content: () -> CardContent
 
     var handleHeight: CGFloat = 20.0
 
-    @State private var cardTop: CGFloat = 0.0
+    /// Card should always appear as animating to it's initial position from below
+    @State private var cardTop: CGFloat = UIScreen.main.bounds.height
 
     var body: some View {
         GeometryReader { proxy in
-            let card = FWCard(proxy: proxy, handleHeight: handleHeight, state: cardState)
-
             VStack(spacing: 0) {
+
+                /// Safe area insets top edge spacer for .full state
                 if cardState == .full {
                     VStack {
                         Color.clear
-                    }.frame(width: card.size.width, height: proxy.safeAreaInsets.top)
+                    }.frame(width: proxy.size.width, height: proxy.safeAreaInsets.top)
                 }
+                /// Drag control handle
                 VStack {
                     DragHandle().frame(width: 150, height: handleHeight)
                             /// Make hit detectable over clear area surrounding handle
                             .contentShape(Rectangle())
-                }.frame(width: card.size.width, height: handleHeight)
+                }.frame(width: proxy.size.width, height: handleHeight)
 
+                /// Wrapped content
                 content()
                         .modifier(CardShape(cardState: cardState))
 
             }
                     .edgesIgnoringSafeArea(.all)
-                    .position(x: card.size.width / 2, y: cardTop + card.size.height / 2)
+                    .position(position(proxy))
 
                     .onAppear {
-                        switch cardState {
-                            case .collapsed:
-                                setCardTop(proxy.frame(in: .local).origin.y + proxy.size.height - handleHeight)
-                            case .full:
-                                setCardTop(proxy.frame(in: .local).origin.y)
-                        }
+                        setCardTopForState(proxy, cardState)
                     }
                     .onChange(of: cardState) { newState in
-                        switch newState {
-                            case .collapsed:
-                                setCardTop(proxy.frame(in: .local).origin.y + proxy.size.height - handleHeight)
-                            case .full:
-                                setCardTop(proxy.frame(in: .local).origin.y)
-                        }
+                        setCardTopForState(proxy, newState)
                     }
+        }
+    }
+
+    private func position (_ proxy: GeometryProxy) -> CGPoint {
+        CGPoint(x: proxy.size.width / 2, y: cardTop + proxy.size.height / 2)
+    }
+
+    private func position (_ proxy: GeometryProxy, forDragTranslation translation: CGSize) -> CGPoint {
+        CGPoint(x: position(proxy).x, y: position(proxy).y + translation.height)
+    }
+
+    private func setCardTopForState (_ proxy: GeometryProxy, _ state: FWCardState) {
+        switch state {
+            case .collapsed:
+                setCardTop(proxy.frame(in: .local).origin.y + proxy.size.height - handleHeight)
+            case .full:
+                setCardTop(proxy.frame(in: .local).origin.y)
         }
     }
 
@@ -68,7 +78,7 @@ struct FWCardView_Preview: PreviewProvider {
             ZStack {
                 Color.blue.opacity(0.4).edgesIgnoringSafeArea(.all)
                 GeometryReader { proxy in
-                    FWCardView {
+                    FWCardView(cardState: .constant(.full)) {
                         NavigationView {
                             Color.yellow
                                     .navigationBarTitle("Feed")
