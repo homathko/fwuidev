@@ -5,37 +5,34 @@
 import SwiftUI
 
 struct FWCardContentView: View {
-    @Binding var cardState: FWCardState
-    
+    @State var cardState: FWCardState = .collapsed
+    @State private var selectedTab: Int = 0
+
     var body: some View {
-        TabView {
+        /// Observe taps on tab bar items that change
+        /// FWCardView state
+        let selection = Binding<Int>(
+                get: { selectedTab },
+                set: {
+                    selectedTab = $0
+                    if cardState != .full { cardState = .full } else { cardState = .collapsed }
+                })
+
+        /// Begin TabView
+        TabView(selection: selection) {
             ZStack {
                 Color.gray.opacity(0.4).edgesIgnoringSafeArea(.all)
-                GeometryReader { proxy in
-                    FWCardView(cardState: $cardState, containerProxy: proxy) {
-                        NavigationView {
-                            ZStack {
-                                Color.purple
-                                Text("X").foregroundColor(.white)
-                            }
-                        }
+                FWCardView(cardState: cardState) {
+                    ZStack {
+                        Color.purple
+                        Text("X").foregroundColor(.white)
                     }
                 }
             }
                     .tabItem {
                         Image(systemName: "hand.draw.fill")
                         Text("Finger Slap")
-                    }
+                    }.tag(0)
         }
-    }
-}
-
-
-
-struct FWCardContentSubView<Content: View>: View {
-    var content: () -> Content
-
-    var body: some View {
-        content()
     }
 }
