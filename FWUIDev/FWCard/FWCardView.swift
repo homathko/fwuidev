@@ -11,6 +11,8 @@ struct FWCardView<CardContent: View>: View {
 
     var handleHeight: CGFloat = 20.0
 
+    @State private var cardTop: CGFloat = 0.0
+
     var body: some View {
         GeometryReader { proxy in
             let card = FWCard(proxy: proxy, handleHeight: handleHeight, state: cardState)
@@ -32,7 +34,30 @@ struct FWCardView<CardContent: View>: View {
 
             }
                     .edgesIgnoringSafeArea(.all)
-                    .position(card.center)
+                    .position(x: card.size.width / 2, y: cardTop + card.size.height / 2)
+
+                    .onAppear {
+                        switch cardState {
+                            case .collapsed:
+                                setCardTop(proxy.frame(in: .local).origin.y + proxy.size.height - handleHeight)
+                            case .full:
+                                setCardTop(proxy.frame(in: .local).origin.y)
+                        }
+                    }
+                    .onChange(of: cardState) { newState in
+                        switch newState {
+                            case .collapsed:
+                                setCardTop(proxy.frame(in: .local).origin.y + proxy.size.height - handleHeight)
+                            case .full:
+                                setCardTop(proxy.frame(in: .local).origin.y)
+                        }
+                    }
+        }
+    }
+
+    private func setCardTop (_ y: CGFloat) {
+        withAnimation(.spring(response: 0.3)) {
+            cardTop = y
         }
     }
 }
