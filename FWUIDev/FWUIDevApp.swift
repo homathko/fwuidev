@@ -11,7 +11,7 @@ import SwiftUI
 struct FWUIDevApp: App {
     var body: some Scene {
         WindowGroup {
-            FWCardContentView()
+            ContentView()
         }
     }
 }

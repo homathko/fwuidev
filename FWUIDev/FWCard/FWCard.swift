@@ -23,12 +23,12 @@ struct FWCard {
         rect = proxy.frame(in: .global)
         self.handleHeight = handleHeight
 
-        switch state {
-            case .collapsed:
-                top = proxy.frame(in: .local).origin.y + proxy.size.height - handleHeight
-            case .full:
-                top = proxy.frame(in: .local).origin.y
-        }
+//        switch state {
+//            case .collapsed:
+//                top = proxy.frame(in: .local).origin.y + proxy.size.height - handleHeight
+//            case .full:
+//                top = proxy.frame(in: .local).origin.y
+//        }
     }
 
     /// Set card top in screen coordinates and

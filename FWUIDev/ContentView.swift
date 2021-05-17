@@ -7,14 +7,6 @@
 
 import SwiftUI
 
-struct InsideTabViewFrame: PreferenceKey {
-    static var defaultValue: CGRect = .zero
-
-    static func reduce (value: inout CGRect, nextValue: () -> CGRect) {
-        value = nextValue()
-    }
-}
-
 struct InsideDraggableCardViewFrame: PreferenceKey {
     static var defaultValue: CGRect = .zero
 
@@ -24,41 +16,61 @@ struct InsideDraggableCardViewFrame: PreferenceKey {
 }
 
 struct ContentView: View {
-    @State var viewFrame: CGRect = .zero
-    @State var detents: CardDetents = .init()
-    @State var tab: Int = 0
+    @State var cardState: FWCardState = .partial
+    @State private var selectedTab: Int = 0
+    @State private var detentHeight: CGFloat = 200
+    @State private var headerHeight: CGFloat = 0
 
     var body: some View {
-        TabView(selection: $tab) {
-            GeometryReader { insideTabView in
-                ZStack {
-                    Color.blue
-                    DraggableSlideOverCard(detents: $detents, viewableProxy: insideTabView) {
-                        NavigationView {
-                            YellowView()
-                        }
-                                .navigationViewStyle(StackNavigationViewStyle())
-                    } onFrameChange: { rect, dragging in
+        /// Observe taps on tab bar items that change
+        /// FWCardView state
+        let selection = Binding<Int>(
+                get: { selectedTab },
+                set: {
+                    selectedTab = $0
+                    if cardState != .full {
+                        cardState = .partial
+                    } else {
+                        cardState = .collapsed
+                    }
+                })
 
+        /// Begin TabView
+        TabView(selection: selection) {
+            ZStack {
+                Color.gray.opacity(0.4)
+                FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight) {
+                    NavigationView {
+                        GeometryReader { proxy in
+                            ZStack {
+                                YellowView()
+                            }
+                                    .onAppear {
+                                        headerHeight = proxy.safeAreaInsets.top
+                                        print("ContentView: \(proxy.safeAreaInsets)")
+                                    }
+                                    .navigationBarTitleDisplayMode(.inline)
+                                    .navigationBarItems(
+                                            leading: Button("Collapse") {
+                                                cardState = .collapsed
+                                            },
+                                            trailing: HStack {
+                                                Button("Partial") {
+                                                    cardState = .partial
+                                                }
+                                                Button("Full") {
+                                                    cardState = .full
+                                                }
+                                            }
+                                    )
+                        }
                     }
                 }
-                        .preference(key: InsideTabViewFrame.self, value: insideTabView.frame(in: CoordinateSpace.global))
             }
-                    .onPreferenceChange(InsideTabViewFrame.self) { viewFrame in
-                        self.viewFrame = viewFrame
-                    }
-                    /// View inside TabView frame
-                    .overlay(
-                            Color.clear.border(Color.red)
-                                    .frame(width: viewFrame.width, height: viewFrame.height)
-                    )
                     .tabItem {
-                        Group {
-                            Image(systemName: "radiowaves.left")
-                            Text("Tab 1")
-                        }
-                    }
-                    .tag(0)
+                        Image(systemName: "hand.draw.fill")
+                        Text("Finger Slap")
+                    }.tag(0)
         }
     }
 }
@@ -68,15 +80,12 @@ struct YellowView: View {
         NavigationLink(destination: GreenView()) {
             ZStack {
                 Color.yellow
-                        .navigationBarTitle("Yellow", displayMode: .inline)
                 VStack {
                     Color.clear.border(Color.green)
                             .frame(height: 200)
-//                            .markDetent(.partial)
                     Spacer()
                 }
             }
-
         }
     }
 }
@@ -86,11 +95,9 @@ struct GreenView: View {
         NavigationLink(destination: RedView()) {
             ZStack {
                 Color.green
-                        .navigationBarTitle("Green", displayMode: .inline)
                 VStack {
                     Color.clear.border(Color.black)
                             .frame(height: 100)
-//                            .markDetent(.partial)
                     Spacer()
                 }
             }
@@ -102,7 +109,6 @@ struct RedView: View {
     var body: some View {
         NavigationLink(destination: Color.black) {
             Color.red
-                    .navigationBarTitle("Red", displayMode: .inline)
         }
     }
 }

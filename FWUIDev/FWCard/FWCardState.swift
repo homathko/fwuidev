@@ -5,5 +5,5 @@
 import Foundation
 
 public enum FWCardState {
-    case collapsed, full
+    case collapsed, partial, full
 }
