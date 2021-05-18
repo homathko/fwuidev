@@ -16,7 +16,7 @@ struct InsideDraggableCardViewFrame: PreferenceKey {
 }
 
 struct ContentView: View {
-    @State var cardState: FWCardState = .partial
+    @State var cardState: FWCardState = .full
     @State private var selectedTab: Int = 0
     @State private var detentHeight: CGFloat = 200
     @State private var headerHeight: CGFloat = 0
@@ -38,40 +38,45 @@ struct ContentView: View {
         /// Begin TabView
         TabView(selection: selection) {
             ZStack {
-                Color.gray.opacity(0.4)
-                FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight) {
-                    NavigationView {
+                Color.gray.opacity(0.4).edgesIgnoringSafeArea(.all)
+                FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight, bgColor: .pink) {
+//                    NavigationView {
                         GeometryReader { proxy in
-                            ZStack {
-                                YellowView()
-                            }
+                                VStack {
+                                    Text("")
+                                    Button("Collapse") { cardState = .collapsed }
+                                    Button("Partial") { cardState = .partial }
+                                    Button("Full") { cardState = .full }
+                                    Spacer()
+                                }
                                     .onAppear {
                                         headerHeight = proxy.safeAreaInsets.top
                                         print("ContentView: \(proxy.safeAreaInsets)")
                                     }
-                                    .navigationBarTitleDisplayMode(.inline)
-                                    .navigationBarItems(
-                                            leading: Button("Collapse") {
-                                                cardState = .collapsed
-                                            },
-                                            trailing: HStack {
-                                                Button("Partial") {
-                                                    cardState = .partial
-                                                }
-                                                Button("Full") {
-                                                    cardState = .full
-                                                }
-                                            }
-                                    )
-                        }
+//                                    .navigationBarTitleDisplayMode(.inline)
+//                                    .navigationBarItems(
+//                                            leading: Button("Collapse") {
+//                                                cardState = .collapsed
+//                                            },
+//                                            trailing: HStack {
+//                                                Button("Partial") {
+//                                                    cardState = .partial
+//                                                }
+//                                                Button("Full") {
+//                                                    cardState = .full
+//                                                }
+//                                            }
+//                                    )
+//                        }
                     }
                 }
+//                SafeAreaInsetsView()
             }
                     .tabItem {
                         Image(systemName: "hand.draw.fill")
                         Text("Finger Slap")
                     }.tag(0)
-        }
+            }
     }
 }
 
