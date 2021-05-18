@@ -15,6 +15,14 @@ struct InsideDraggableCardViewFrame: PreferenceKey {
     }
 }
 
+struct DetentHeightChange: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce (value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
 struct ContentView: View {
     @State var cardState: FWCardState = .full
     @State private var selectedTab: Int = 0
@@ -38,36 +46,19 @@ struct ContentView: View {
         /// Begin TabView
         TabView(selection: selection) {
             ZStack {
-                Color.gray.opacity(0.4).edgesIgnoringSafeArea(.all)
-                FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight, bgColor: .pink) {
-//                    NavigationView {
-                        GeometryReader { proxy in
-                                VStack {
-                                    Text("")
-                                    Button("Collapse") { cardState = .collapsed }
-                                    Button("Partial") { cardState = .partial }
-                                    Button("Full") { cardState = .full }
-                                    Spacer()
-                                }
-                                    .onAppear {
-                                        headerHeight = proxy.safeAreaInsets.top
-                                        print("ContentView: \(proxy.safeAreaInsets)")
+                MapboxMap().edgesIgnoringSafeArea(.all)
+//                Color.gray.opacity(0.4).edgesIgnoringSafeArea(.all)
+                FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight, bgColor: .white) {
+                    FWNavigationView(cardState: $cardState, headerHeight: $headerHeight) {
+                        YellowView(detentHeight: $detentHeight)
+                            .navigationBarTitleDisplayMode(.inline)
+                            .navigationBarItems(
+                                    leading: Button("Collapse") { cardState = .collapsed },
+                                    trailing: HStack {
+                                        Button("Partial") { cardState = .partial }
+                                        Button("Full") { cardState = .full }
                                     }
-//                                    .navigationBarTitleDisplayMode(.inline)
-//                                    .navigationBarItems(
-//                                            leading: Button("Collapse") {
-//                                                cardState = .collapsed
-//                                            },
-//                                            trailing: HStack {
-//                                                Button("Partial") {
-//                                                    cardState = .partial
-//                                                }
-//                                                Button("Full") {
-//                                                    cardState = .full
-//                                                }
-//                                            }
-//                                    )
-//                        }
+                            )
                     }
                 }
 //                SafeAreaInsetsView()
@@ -81,40 +72,75 @@ struct ContentView: View {
 }
 
 struct YellowView: View {
+    @State var detent: CGFloat = 0.0
+    @Binding var detentHeight: CGFloat
+
     var body: some View {
-        NavigationLink(destination: GreenView()) {
+        NavigationLink(destination: GreenView(detentHeight: $detentHeight)) {
             ZStack {
                 Color.yellow
                 VStack {
                     Color.clear.border(Color.green)
                             .frame(height: 200)
+                            .preference(key: DetentHeightChange.self, value: 200)
                     Spacer()
                 }
             }
         }
+                .onPreferenceChange(DetentHeightChange.self) { value in
+                    self.detent = value
+                }
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(50)) {
+                        self.detentHeight = detent
+                    }
+                }
     }
 }
 
 struct GreenView: View {
+    @State var detent: CGFloat = 0.0
+    @Binding var detentHeight: CGFloat
+
     var body: some View {
-        NavigationLink(destination: RedView()) {
+        NavigationLink(destination: RedView(detentHeight: $detentHeight)) {
             ZStack {
                 Color.green
                 VStack {
                     Color.clear.border(Color.black)
                             .frame(height: 100)
+                            .preference(key: DetentHeightChange.self, value: 100)
                     Spacer()
                 }
             }
         }
+                .onPreferenceChange(DetentHeightChange.self) { value in
+                    self.detent = value
+                }
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(50)) {
+                        self.detentHeight = detent
+                    }
+                }
     }
 }
 
 struct RedView: View {
+    @State var detent: CGFloat = 0.0
+    @Binding var detentHeight: CGFloat
+
     var body: some View {
         NavigationLink(destination: Color.black) {
-            Color.red
+            Color.red.border(Color.black)
+                    .frame(height: 300)
+                    .preference(key: DetentHeightChange.self, value: 300)
         }
+                .onPreferenceChange(DetentHeightChange.self) { value in
+                    detent = value
+                }
+                .onAppear {
+                    detentHeight = detent
+                }
     }
 }
 
