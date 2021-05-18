@@ -14,7 +14,9 @@ struct FWCardView<CardContent: View>: View {
     var handleHeight: CGFloat = 20.0
 
     /// Card should always appear as animating to it's initial position from below
-    @State private var cardTop: CGFloat = UIScreen.main.bounds.height
+    @State internal var cardTop: CGFloat = UIScreen.main.bounds.height
+
+    @GestureState var dragState = FWDragState.inactive
 
     var body: some View {
         GeometryReader { proxy in
@@ -25,7 +27,14 @@ struct FWCardView<CardContent: View>: View {
                     partialWrappedLayout(proxy)
                 }
             }
-                    .position(position(proxy))
+                    .position(position(proxy, forDragTranslation: dragState.translation))
+                    .gesture(dragGesture)
+                    .animation(.interpolatingSpring(
+                            stiffness: 300.0,
+                            damping: 30.0,
+                            initialVelocity: 10.0
+                    ))
+
                     .onAppear {
                         print("FWCardView: \(proxy.safeAreaInsets)")
                         setCardTopForState(proxy, cardState)
@@ -63,12 +72,12 @@ struct FWCardView<CardContent: View>: View {
         }
     }
 
-    private func position (_ proxy: GeometryProxy) -> CGPoint {
+    internal func position (_ proxy: GeometryProxy) -> CGPoint {
         CGPoint(x: proxy.size.width / 2, y: cardTop + proxy.size.height / 2)
     }
 
-    private func position (_ proxy: GeometryProxy, forDragTranslation translation: CGSize) -> CGPoint {
-        CGPoint(x: position(proxy).x, y: position(proxy).y + translation.height)
+    internal func position (_ proxy: GeometryProxy, forDragTranslation translation: CGSize) -> CGPoint {
+        CGPoint(x: proxy.size.width / 2, y: cardTop + proxy.size.height / 2 + translation.height)
     }
 
     private func setCardTopForState (_ proxy: GeometryProxy, _ state: FWCardState) {
@@ -83,7 +92,7 @@ struct FWCardView<CardContent: View>: View {
         }
     }
 
-    private func setCardTop (_ y: CGFloat) {
+    internal func setCardTop (_ y: CGFloat) {
         withAnimation(.spring(response: 0.4)) {
             cardTop = y
         }
