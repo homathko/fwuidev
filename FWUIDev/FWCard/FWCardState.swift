@@ -4,6 +4,6 @@
 
 import Foundation
 
-public enum FWCardState {
+public enum FWCardState: String {
     case collapsed, partial, full
 }

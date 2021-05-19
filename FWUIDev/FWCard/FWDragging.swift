@@ -35,15 +35,19 @@ extension FWCardView {
         let positionBelow: CGFloat
         let closestPosition: CGFloat
 
-        if cardTop >= detentHeight {
+        let detentPosition: CGFloat = 350
+        
+        var newState: FWCardState? = nil
+
+        if cardTop <= detentPosition {
             positionAbove = 0.0
-            positionBelow = detentHeight
+            positionBelow = detentPosition
         } else {
-            positionAbove = detentHeight
-            positionBelow = 700
+            positionAbove = detentPosition
+            positionBelow = 640
         }
 
-        if (cardTop - positionAbove) > (positionBelow - cardTop) {
+        if (cardTop - positionAbove) < (positionBelow - cardTop) {
             closestPosition = positionAbove
         } else {
             closestPosition = positionBelow
@@ -51,20 +55,39 @@ extension FWCardView {
 
         if verticalDirection > 0 {
 
-            if Int(positionBelow) == Int(detentHeight) { cardState = .partial } else
-            if Int(positionBelow) == 700 { cardState = .collapsed }
+            if Int(positionBelow) == Int(detentPosition) {
+                newState = .partial
+            } else if Int(positionBelow) == 640 {
+                newState = .collapsed
+            } else {
+                print("No condition met")
+            }
 
         } else if verticalDirection < 0 {
 
-            if Int(positionAbove) == 0 { cardState = .full } else
-            if Int(positionAbove) == Int(detentHeight) { cardState = .partial }
+            if Int(positionAbove) == 0 {
+                newState = .full
+            } else if Int(positionAbove) == Int(detentPosition) {
+                newState = .partial
+            } else {
+                print("No condition met")
+            }
 
         } else {
 
-            if Int(closestPosition) == 0 { cardState = .full } else
-            if Int(closestPosition) == Int(detentHeight) { cardState = .partial } else
-            if Int(closestPosition) == 700 { cardState = .collapsed }
+            if Int(closestPosition) == 0 {
+                newState = .full
+            } else if Int(closestPosition) == Int(detentPosition) {
+                newState = .partial
+            } else if Int(closestPosition) == 640 {
+                newState = .collapsed
+            } else {
+                print("No condition met")
+            }
+        }
 
+        if let state = newState {
+            cardState = state
         }
     }
 }

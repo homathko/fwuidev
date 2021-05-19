@@ -24,7 +24,7 @@ struct DetentHeightChange: PreferenceKey {
 }
 
 struct ContentView: View {
-    @State var cardState: FWCardState = .full
+    @State private var cardState: FWCardState = .full
     @State private var selectedTab: Int = 0
     @State private var detentHeight: CGFloat = 200
     @State private var headerHeight: CGFloat = 0
@@ -48,15 +48,21 @@ struct ContentView: View {
             ZStack {
                 MapboxMap().edgesIgnoringSafeArea(.all)
 //                Color.gray.opacity(0.4).edgesIgnoringSafeArea(.all)
-                FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight, bgColor: .white) {
+                FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight, bgColor: .white.opacity(0.75)) {
                     FWNavigationView(cardState: $cardState, headerHeight: $headerHeight) {
-                        YellowView(detentHeight: $detentHeight)
+                        YellowView()
                             .navigationBarTitleDisplayMode(.inline)
                             .navigationBarItems(
-                                    leading: Button("Collapse") { cardState = .collapsed },
+                                    leading: Button("Collapse") {
+                                        cardState = .collapsed
+                                    },
                                     trailing: HStack {
-                                        Button("Partial") { cardState = .partial }
-                                        Button("Full") { cardState = .full }
+                                        Button("Partial") {
+                                            cardState = .partial
+                                        }
+                                        Button("Full") {
+                                            cardState = .full
+                                        }
                                     }
                             )
                     }
@@ -72,75 +78,41 @@ struct ContentView: View {
 }
 
 struct YellowView: View {
-    @State var detent: CGFloat = 0.0
-    @Binding var detentHeight: CGFloat
-
     var body: some View {
-        NavigationLink(destination: GreenView(detentHeight: $detentHeight)) {
+        NavigationLink(destination: GreenView()) {
             ZStack {
                 Color.yellow
                 VStack {
                     Color.clear.border(Color.green)
                             .frame(height: 200)
-                            .preference(key: DetentHeightChange.self, value: 200)
                     Spacer()
                 }
             }
         }
-                .onPreferenceChange(DetentHeightChange.self) { value in
-                    self.detent = value
-                }
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(50)) {
-                        self.detentHeight = detent
-                    }
-                }
     }
 }
 
 struct GreenView: View {
-    @State var detent: CGFloat = 0.0
-    @Binding var detentHeight: CGFloat
-
     var body: some View {
-        NavigationLink(destination: RedView(detentHeight: $detentHeight)) {
+        NavigationLink(destination: RedView()) {
             ZStack {
                 Color.green
                 VStack {
                     Color.clear.border(Color.black)
                             .frame(height: 100)
-                            .preference(key: DetentHeightChange.self, value: 100)
                     Spacer()
                 }
             }
         }
-                .onPreferenceChange(DetentHeightChange.self) { value in
-                    self.detent = value
-                }
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(50)) {
-                        self.detentHeight = detent
-                    }
-                }
     }
 }
 
 struct RedView: View {
-    @State var detent: CGFloat = 0.0
-    @Binding var detentHeight: CGFloat
-
     var body: some View {
         NavigationLink(destination: Color.black) {
             Color.red.border(Color.black)
                     .frame(height: 300)
-                    .preference(key: DetentHeightChange.self, value: 300)
         }
-                .onPreferenceChange(DetentHeightChange.self) { value in
-                    detent = value
-                }
-                .onAppear {
-                    detentHeight = detent
-                }
     }
 }
 

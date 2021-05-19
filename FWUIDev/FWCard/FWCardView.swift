@@ -29,14 +29,7 @@ struct FWCardView<CardContent: View>: View {
             }
                     .position(position(proxy, forDragTranslation: dragState.translation))
                     .gesture(dragGesture)
-                    .animation(.interpolatingSpring(
-                            stiffness: 300.0,
-                            damping: 30.0,
-                            initialVelocity: 10.0
-                    ))
-
                     .onAppear {
-                        print("FWCardView: \(proxy.safeAreaInsets)")
                         setCardTopForState(proxy, cardState)
                     }
                     .onChange(of: cardState) { newState in
@@ -53,7 +46,6 @@ struct FWCardView<CardContent: View>: View {
                     .contentShape(Rectangle())
             content()
                 .background(bgColor)
-            
         }
                 .background(bgColor.edgesIgnoringSafeArea(.all))
     }
@@ -68,7 +60,6 @@ struct FWCardView<CardContent: View>: View {
                 .background(bgColor)
                 .cornerRadius(10.0, corners: [.topLeft, .topRight])
                 .padding(.leading, 4).padding(.trailing, 4)
-//                .edgesIgnoringSafeArea(.bottom)
         }
     }
 
@@ -93,7 +84,7 @@ struct FWCardView<CardContent: View>: View {
     }
 
     internal func setCardTop (_ y: CGFloat) {
-        withAnimation(.spring(response: 0.4)) {
+        withAnimation(.spring(response: 0.3)) {
             cardTop = y
         }
     }
