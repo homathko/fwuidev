@@ -26,16 +26,18 @@ extension FWCardView {
         let positionBelow: CGFloat
         let closestPosition: CGFloat
 
+        let fullPosition: Int = 100
         let detentPosition: CGFloat = 350
+        let collapsedPosition: Int = 640
         
         var newState: FWCardState? = nil
 
         if cardTop <= detentPosition {
-            positionAbove = 0.0
+            positionAbove = CGFloat(fullPosition)
             positionBelow = detentPosition
         } else {
             positionAbove = detentPosition
-            positionBelow = 640
+            positionBelow = CGFloat(collapsedPosition)
         }
 
         if (cardTop - positionAbove) < (positionBelow - cardTop) {
@@ -48,7 +50,7 @@ extension FWCardView {
 
             if Int(positionBelow) == Int(detentPosition) {
                 newState = .partial
-            } else if Int(positionBelow) == 640 {
+            } else if Int(positionBelow) == collapsedPosition {
                 newState = .collapsed
             } else {
                 print("No condition met")
@@ -56,7 +58,7 @@ extension FWCardView {
 
         } else if verticalDirection < 0 {
 
-            if Int(positionAbove) == 0 {
+            if Int(positionAbove) == fullPosition {
                 newState = .full
             } else if Int(positionAbove) == Int(detentPosition) {
                 newState = .partial
@@ -66,11 +68,11 @@ extension FWCardView {
 
         } else {
 
-            if Int(closestPosition) == 0 {
+            if Int(closestPosition) == fullPosition {
                 newState = .full
             } else if Int(closestPosition) == Int(detentPosition) {
                 newState = .partial
-            } else if Int(closestPosition) == 640 {
+            } else if Int(closestPosition) == collapsedPosition {
                 newState = .collapsed
             } else {
                 print("No condition met")

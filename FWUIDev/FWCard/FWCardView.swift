@@ -21,11 +21,21 @@ struct FWCardView<CardContent: View>: View {
 
     var body: some View {
         GeometryReader { proxy in
-            VStack(spacing: 0) { /// <--- spacing:0 stays!
-                if cardState == .full {
-                    fullWrappedLayout
-                } else {
-                    partialWrappedLayout(proxy)
+            VStack(spacing: 0) {
+                HStack {
+                    DragHandle()
+                        .frame(width: proxy.frame(in: .local).width, height: handleHeight)
+                            /// Make hit detectable over clear area surrounding handle
+                            .contentShape(Rectangle())
+                }
+                FWNavigationView(cardState: $cardState, headerHeight: $headerHeight) {
+                    VStack(spacing: 0) { /// <--- spacing:0 stays!
+                        if cardState == .full {
+                            fullWrappedLayout
+                        } else {
+                            partialWrappedLayout(proxy)
+                        }
+                    }
                 }
             }
                     .position(position(proxy, forDragTranslation: dragState.translation))
@@ -58,10 +68,6 @@ struct FWCardView<CardContent: View>: View {
     
     var fullWrappedLayout: some View {
         VStack(spacing: 0) {
-            DragHandle()
-                .frame(width: 150, height: handleHeight)
-                    /// Make hit detectable over clear area surrounding handle
-                    .contentShape(Rectangle())
             content()
                 .background(bgColor)
         }
@@ -70,10 +76,6 @@ struct FWCardView<CardContent: View>: View {
     
     func partialWrappedLayout (_ proxy: GeometryProxy) -> some View {
         VStack(spacing: 0) {
-            DragHandle()
-                .frame(width: 150, height: handleHeight)
-                    /// Make hit detectable over clear area surrounding handle
-                    .contentShape(Rectangle())
             content()
                 .background(bgColor)
                 .cornerRadius(10.0, corners: [.topLeft, .topRight])
@@ -120,16 +122,18 @@ struct TopSafeArea_Preview2: PreviewProvider {
     static var previews: some View {
         ZStack {
             Color.gray.opacity(0.3)
-            FWCardView(cardState: .constant(.partial),
+            FWCardView(cardState: .constant(.full),
                     detentHeight: .constant(200),
                     headerHeight: .constant(0))
             {
-                VStack {
-                    HStack {
-                        Text("Content")
+                NavigationLink(destination: Color.green) {
+                    VStack {
+                        HStack {
+                            Text("Content")
+                            Spacer()
+                        }
                         Spacer()
                     }
-                    Spacer()
                 }
             }
             

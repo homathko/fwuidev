@@ -49,23 +49,21 @@ struct ContentView: View {
                 MapboxMap().edgesIgnoringSafeArea(.all)
 //                Color.gray.opacity(0.4).edgesIgnoringSafeArea(.all)
                 FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight, bgColor: .white.opacity(0.75)) {
-                    FWNavigationView(cardState: $cardState, headerHeight: $headerHeight) {
-                        YellowView()
-                            .navigationBarTitleDisplayMode(.inline)
-                            .navigationBarItems(
-                                    leading: Button("Collapse") {
-                                        cardState = .collapsed
-                                    },
-                                    trailing: HStack {
-                                        Button("Partial") {
-                                            cardState = .partial
-                                        }
-                                        Button("Full") {
-                                            cardState = .full
-                                        }
+                    YellowView()
+                        .navigationBarTitle("Fucking SwiftUI", displayMode: .inline)
+                        .navigationBarItems(
+                                leading: Button("Collapse") {
+                                    cardState = .collapsed
+                                },
+                                trailing: HStack {
+                                    Button("Partial") {
+                                        cardState = .partial
                                     }
-                            )
-                    }
+                                    Button("Full") {
+                                        cardState = .full
+                                    }
+                                }
+                        )
                 } onFrameChange: { frame in
                     print(frame)
                 }
