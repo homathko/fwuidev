@@ -11,6 +11,7 @@ struct FWCardView<CardContent: View>: View {
     @Binding var headerHeight: CGFloat
     var bgColor: Color = .pink
     var content: () -> CardContent
+    var onFrameChange: (CGRect) -> () = { _ in }
     var handleHeight: CGFloat = 20.0
 
     /// Card should always appear as animating to it's initial position from below
@@ -28,7 +29,24 @@ struct FWCardView<CardContent: View>: View {
                 }
             }
                     .position(position(proxy, forDragTranslation: dragState.translation))
-                    .gesture(dragGesture)
+                    .gesture(
+                            /// Unable to factor out due to dependency on proxy
+                            DragGesture()
+                                    .updating($dragState) { drag, state, transaction in
+                                        state = .dragging(translation: drag.translation)
+
+                                        let top = cardTop + drag.translation.height
+                                        let frame = proxy.frame(in: .global)
+                                        onFrameChange(CGRect(
+                                                x: frame.origin.x,
+                                                y: frame.origin.y,
+                                                width: frame.width,
+                                                height: frame.height - (frame.height - top)
+                                        ))
+                                    }.onEnded { value in
+                                onDragEnded(drag: value)
+                            }
+                    )
                     .onAppear {
                         setCardTopForState(proxy, cardState)
                     }
@@ -74,18 +92,25 @@ struct FWCardView<CardContent: View>: View {
     private func setCardTopForState (_ proxy: GeometryProxy, _ state: FWCardState) {
         switch state {
             case .collapsed:
-                setCardTop(proxy.size.height - handleHeight)
+                setCardTop(proxy: proxy, y: proxy.size.height - handleHeight)
             case .partial:
                 print("Detent height: \(detentHeight), Header height: \(headerHeight)")
-                setCardTop(proxy.frame(in: .local).origin.y + proxy.size.height - handleHeight - detentHeight - headerHeight)
+                setCardTop(proxy: proxy, y: proxy.frame(in: .local).origin.y + proxy.size.height - handleHeight - detentHeight - headerHeight)
             case .full:
-                setCardTop(proxy.frame(in: .local).origin.y)
+                setCardTop(proxy: proxy, y: proxy.frame(in: .local).origin.y)
         }
     }
 
-    internal func setCardTop (_ y: CGFloat) {
+    internal func setCardTop (proxy: GeometryProxy, y: CGFloat) {
         withAnimation(.spring(response: 0.3)) {
             cardTop = y
+            let frame = proxy.frame(in: .global)
+            onFrameChange(CGRect(
+                    x: frame.origin.x,
+                    y: frame.origin.y,
+                    width: frame.width,
+                    height: frame.height - (frame.height - cardTop)
+            ))
         }
     }
 }

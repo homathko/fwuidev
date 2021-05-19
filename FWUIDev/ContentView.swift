@@ -66,6 +66,8 @@ struct ContentView: View {
                                     }
                             )
                     }
+                } onFrameChange: { frame in
+                    print(frame)
                 }
 //                SafeAreaInsetsView()
             }

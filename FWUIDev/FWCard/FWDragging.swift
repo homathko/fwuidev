@@ -12,16 +12,7 @@ extension FWCardView {
                 .updating($dragState) { drag, state, transaction in
                     state = .dragging(translation: drag.translation)
 
-//                    let rect = CGRect(
-//                            x: 0,
-//                            y: 0,
-//                            width: UIScreen.main.bounds.width,
-//                            height: max(
-//                                    self.cardCenter.y - _cardHeight / 2 + self.dragState.translation.height,
-//                                    CardState.full.height(detents)
-//                            )
-//                    )
-//                    onFrameChange(rect, true)
+                    /// Call onFrameChange where proxy is available
                 }.onEnded { value in
                     onDragEnded(drag: value)
                 }
