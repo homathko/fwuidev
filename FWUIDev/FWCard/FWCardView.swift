@@ -9,7 +9,7 @@ struct FWCardView<CardContent: View>: View {
     @Binding var cardState: FWCardState
     @Binding var detentHeight: CGFloat
     @Binding var headerHeight: CGFloat
-    var bgColor: Color = .pink
+    var bgColor: Color = Color(UIColor.systemBackground).opacity(0.65)
     var content: () -> CardContent
     var onFrameChange: (CGRect) -> () = { _ in }
     var handleHeight: CGFloat = 20.0
@@ -22,12 +22,16 @@ struct FWCardView<CardContent: View>: View {
     var body: some View {
         GeometryReader { proxy in
             VStack(spacing: 0) {
+                
                 HStack {
                     DragHandle()
                         .frame(width: proxy.frame(in: .local).width, height: handleHeight)
                             /// Make hit detectable over clear area surrounding handle
                             .contentShape(Rectangle())
                 }
+                        /// Drag handle has a background color if card state is full screen
+                        .modifier(FullConditionalWrappedLayout(cardState: cardState, bgColor: bgColor))
+                
                 FWNavigationView(cardState: $cardState, headerHeight: $headerHeight) {
                     VStack(spacing: 0) { /// <--- spacing:0 stays!
                         if cardState == .full {
@@ -36,6 +40,7 @@ struct FWCardView<CardContent: View>: View {
                             partialWrappedLayout(proxy)
                         }
                     }
+                            .edgesIgnoringSafeArea(.bottom)
                 }
             }
                     .position(position(proxy, forDragTranslation: dragState.translation))
@@ -71,7 +76,20 @@ struct FWCardView<CardContent: View>: View {
             content()
                 .background(bgColor)
         }
-                .background(bgColor.edgesIgnoringSafeArea(.all))
+    }
+    
+    struct FullConditionalWrappedLayout: ViewModifier {
+        var cardState: FWCardState
+        var bgColor: Color
+        
+        func body(content: Content) -> some View {
+            if cardState == .full {
+                content
+                    .background(bgColor.edgesIgnoringSafeArea(.all))
+            } else {
+                content
+            }
+        }
     }
     
     func partialWrappedLayout (_ proxy: GeometryProxy) -> some View {
@@ -121,21 +139,24 @@ struct TopSafeArea_Preview2: PreviewProvider {
 
     static var previews: some View {
         ZStack {
-            Color.gray.opacity(0.3)
+            Color.gray.opacity(0.3).edgesIgnoringSafeArea(.all)
             FWCardView(cardState: .constant(.full),
                     detentHeight: .constant(200),
-                    headerHeight: .constant(0))
+                    headerHeight: .constant(44))
             {
                 NavigationLink(destination: Color.green) {
-                    VStack {
-                        HStack {
-                            Text("Content")
+                    ZStack {
+                        Color.yellow
+                        VStack {
+                            HStack {
+                                Text("Content")
+                                Spacer()
+                            }
                             Spacer()
                         }
-                        Spacer()
                     }
                 }
-            }
+            }.edgesIgnoringSafeArea(.bottom)
             
         }
     }

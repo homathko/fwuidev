@@ -6,18 +6,6 @@ import CoreGraphics
 import SwiftUI
 
 extension FWCardView {
-    var dragGesture: some Gesture {
-
-        DragGesture()
-                .updating($dragState) { drag, state, transaction in
-                    state = .dragging(translation: drag.translation)
-
-                    /// Call onFrameChange where proxy is available
-                }.onEnded { value in
-                    onDragEnded(drag: value)
-                }
-    }
-
     func onDragEnded (drag: DragGesture.Value) {
         let verticalDirection = max(0, drag.predictedEndLocation.y) - max(0, drag.location.y)
         cardTop = cardTop + drag.translation.height
@@ -97,6 +85,8 @@ public enum FWDragState {
                 return translation
         }
     }
+
+    /// print("dy: \(dy), proxy.safeAreaInsets.top: \(proxy.safeAreaInsets.top), dyLimit: \(max(dy, proxy.safeAreaInsets.top - handleHeight))")
 
     var isDragging: Bool {
         switch self {
