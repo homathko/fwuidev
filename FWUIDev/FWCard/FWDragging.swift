@@ -8,7 +8,7 @@ import SwiftUI
 extension FWCardView {
     func onDragEnded (drag: DragGesture.Value) {
         let verticalDirection = max(0, drag.predictedEndLocation.y) - max(0, drag.location.y)
-        cardTop = cardTop + drag.translation.height
+        cardTop = max(cardTop + drag.translation.height, 0)
 
         let positionAbove: CGFloat
         let positionBelow: CGFloat
@@ -85,8 +85,6 @@ public enum FWDragState {
                 return translation
         }
     }
-
-    /// print("dy: \(dy), proxy.safeAreaInsets.top: \(proxy.safeAreaInsets.top), dyLimit: \(max(dy, proxy.safeAreaInsets.top - handleHeight))")
 
     var isDragging: Bool {
         switch self {

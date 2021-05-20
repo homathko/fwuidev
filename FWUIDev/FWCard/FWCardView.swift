@@ -102,11 +102,20 @@ struct FWCardView<CardContent: View>: View {
     }
 
     internal func position (_ proxy: GeometryProxy) -> CGPoint {
-        CGPoint(x: proxy.size.width / 2, y: cardTop + proxy.size.height / 2)
+        CGPoint(
+                x: proxy.size.width / 2,
+                y: cardTop + proxy.size.height / 2
+        )
     }
 
     internal func position (_ proxy: GeometryProxy, forDragTranslation translation: CGSize) -> CGPoint {
-        CGPoint(x: proxy.size.width / 2, y: cardTop + proxy.size.height / 2 + translation.height)
+        print("proxy.safeAreaInsets.top: \(proxy.safeAreaInsets.top), translation: \(translation)")
+        let posY = max(cardTop + proxy.size.height / 2 + translation.height, cardTop + proxy.size.height / 2)
+        print("position.y: \(posY)")
+        return CGPoint(
+                x: proxy.size.width / 2,
+                y: posY
+        )
     }
 
     private func setCardTopForState (_ proxy: GeometryProxy, _ state: FWCardState) {
