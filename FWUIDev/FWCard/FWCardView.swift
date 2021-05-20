@@ -109,12 +109,9 @@ struct FWCardView<CardContent: View>: View {
     }
 
     internal func position (_ proxy: GeometryProxy, forDragTranslation translation: CGSize) -> CGPoint {
-        print("proxy.safeAreaInsets.top: \(proxy.safeAreaInsets.top), translation: \(translation)")
-        let posY = max(cardTop + proxy.size.height / 2 + translation.height, cardTop + proxy.size.height / 2)
-        print("position.y: \(posY)")
-        return CGPoint(
+        CGPoint(
                 x: proxy.size.width / 2,
-                y: posY
+                y: max(cardTop + proxy.size.height / 2 + translation.height, cardTop + proxy.size.height / 2)
         )
     }
 
