@@ -34,14 +34,14 @@ struct FWCardView<CardContent: View>: View {
                 
                 FWNavigationView(cardState: $cardState, headerHeight: $headerHeight) {
                     VStack(spacing: 0) { /// <--- spacing:0 stays!
-                        if cardState == .full {
-                            fullWrappedLayout
-                        } else {
-                            partialWrappedLayout(proxy)
+                        VStack(spacing: 0) {
+                            content()
+                                    .background(bgColor)
                         }
                     }
                             .edgesIgnoringSafeArea(.bottom)
                 }
+                            .modifier(PartialConditionalWrappedLayout(cardState: cardState))
             }
                     .position(position(proxy, forDragTranslation: dragState.translation))
                     .gesture(
@@ -71,13 +71,6 @@ struct FWCardView<CardContent: View>: View {
         }
     }
     
-    var fullWrappedLayout: some View {
-        VStack(spacing: 0) {
-            content()
-                .background(bgColor)
-        }
-    }
-    
     struct FullConditionalWrappedLayout: ViewModifier {
         var cardState: FWCardState
         var bgColor: Color
@@ -91,13 +84,17 @@ struct FWCardView<CardContent: View>: View {
             }
         }
     }
-    
-    func partialWrappedLayout (_ proxy: GeometryProxy) -> some View {
-        VStack(spacing: 0) {
-            content()
-                .background(bgColor)
-                .cornerRadius(10.0, corners: [.topLeft, .topRight])
-                .padding(.leading, 4).padding(.trailing, 4)
+
+    struct PartialConditionalWrappedLayout: ViewModifier {
+        var cardState: FWCardState
+        func body (content: Content) -> some View {
+            if cardState != .full {
+                content
+                        .cornerRadius(10.0, corners: [.topLeft, .topRight])
+                        .padding(.leading, 4).padding(.trailing, 4)
+            } else {
+                content
+            }
         }
     }
 
