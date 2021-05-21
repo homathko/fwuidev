@@ -22,30 +22,30 @@ struct FWCardView<CardContent: View>: View {
     var body: some View {
         GeometryReader { proxy in
             VStack(spacing: 0) {
-                
+
                 HStack {
                     DragHandle()
-                        .frame(width: proxy.frame(in: .local).width, height: handleHeight)
+                            .frame(width: proxy.frame(in: .local).width, height: handleHeight)
                             /// Make hit detectable over clear area surrounding handle
                             .contentShape(Rectangle())
                 }
                         /// Drag handle has a background color if card state is full screen
                         .modifier(FullConditionalWrappedLayout(cardState: cardState, bgColor: bgColor))
-                
+
                 FWNavigationView(cardState: $cardState, headerHeight: $headerHeight) {
                     VStack(spacing: 0) { /// <--- spacing:0 stays!
-                        VStack(spacing: 0) {
-                            content()
-                                    .background(bgColor)
+                        if cardState == .full {
+                            fullWrappedLayout
+                        } else {
+                            partialWrappedLayout(proxy)
                         }
                     }
                             .edgesIgnoringSafeArea(.bottom)
                 }
-                            .modifier(PartialConditionalWrappedLayout(cardState: cardState))
             }
                     .position(position(proxy, forDragTranslation: dragState.translation))
                     .gesture(
-                            /// Unable to factor out due to dependency on proxy
+                        /// Unable to factor out due to dependency on proxy
                             DragGesture()
                                     .updating($dragState) { drag, state, transaction in
                                         state = .dragging(translation: drag.translation)
@@ -70,31 +70,34 @@ struct FWCardView<CardContent: View>: View {
                     }
         }
     }
-    
+
+    var fullWrappedLayout: some View {
+        VStack(spacing: 0) {
+            content()
+                    .background(bgColor)
+        }
+    }
+
     struct FullConditionalWrappedLayout: ViewModifier {
         var cardState: FWCardState
         var bgColor: Color
-        
+
         func body(content: Content) -> some View {
             if cardState == .full {
                 content
-                    .background(bgColor.edgesIgnoringSafeArea(.all))
+                        .background(bgColor.edgesIgnoringSafeArea(.all))
             } else {
                 content
             }
         }
     }
 
-    struct PartialConditionalWrappedLayout: ViewModifier {
-        var cardState: FWCardState
-        func body (content: Content) -> some View {
-            if cardState != .full {
-                content
-                        .cornerRadius(10.0, corners: [.topLeft, .topRight])
-                        .padding(.leading, 4).padding(.trailing, 4)
-            } else {
-                content
-            }
+    func partialWrappedLayout (_ proxy: GeometryProxy) -> some View {
+        VStack(spacing: 0) {
+            content()
+                    .background(bgColor)
+                    .cornerRadius(10.0, corners: [.topLeft, .topRight])
+                    .padding(.leading, 4).padding(.trailing, 4)
         }
     }
 
@@ -160,7 +163,7 @@ struct TopSafeArea_Preview2: PreviewProvider {
                     }
                 }
             }.edgesIgnoringSafeArea(.bottom)
-            
+
         }
     }
 }
