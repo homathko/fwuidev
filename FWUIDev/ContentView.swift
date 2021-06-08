@@ -6,24 +6,55 @@
 //
 
 import SwiftUI
+import CoreLocation
+import UIKit
 
-struct InsideDraggableCardViewFrame: PreferenceKey {
-    static var defaultValue: CGRect = .zero
+struct AssetModel: Identifiable, Locatable, FWMapScreenDrawable {
+    var id = UUID().uuidString
+    var location: CLLocation
 
-    static func reduce (value: inout CGRect, nextValue: () -> CGRect) {
-        value = nextValue()
+    var spriteType: FWMapSpriteType = .asset
+    var point: CGPoint?
+
+    init (coordinate: CLLocationCoordinate2D) {
+        location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
     }
 }
+/// Seed data (will come from "AnnotationPublisher" conformer)
+var assets: [FWMapSprite] = [
+    FWMapSprite(
+            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.666333, longitude: -123.214510)),
+            spriteType: .asset,
+            name: "Pin 1"
+    ),
+    FWMapSprite(
+            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.685191, longitude: -123.140212)),
+            spriteType: .asset,
+            name: "Pin 2"
+    ),
+    FWMapSprite(
+            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.784707, longitude: -123.159805)),
+            spriteType: .asset,
+            name: "Pin 3"
+    )
+]
 
-struct DetentHeightChange: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-
-    static func reduce (value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
+//        +
+//        (0...50).map { _ in
+//            FWMapSprite(
+//                    model: AssetModel(
+//                            coordinate: CLLocationCoordinate2D(
+//                                    latitude: Double.random(in: 47...51),
+//                                    longitude: -Double.random(in: 121...125)
+//                            )
+//                    ),
+//                    spriteType: .asset
+//            )
+//        }
 
 struct ContentView: View {
+    @StateObject var state: MapViewState = .init()
+    @State var insets: UIEdgeInsets = .zero
     @State private var cardState: FWCardState = .full
     @State private var selectedTab: Int = 0
     @State private var detentHeight: CGFloat = 200
@@ -46,8 +77,9 @@ struct ContentView: View {
         /// Begin TabView
         TabView(selection: selection) {
             ZStack {
-                MapboxMap().edgesIgnoringSafeArea(.all)
-//                Color.gray.opacity(0.4).edgesIgnoringSafeArea(.all)
+                FWMapView(insets: $insets, annotations: assets)
+                        .environmentObject(state)
+                        .edgesIgnoringSafeArea(.all)
                 FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight) {
 
                         YellowView()
@@ -68,6 +100,12 @@ struct ContentView: View {
 
                 } onFrameChange: { frame in
                     print(frame)
+                    insets = .init(
+                            top: frame.origin.y,
+                            left: frame.origin.x,
+                            bottom: frame.height,
+                            right: UIScreen.main.bounds.width - frame.width
+                    )
                 }
 //                SafeAreaInsetsView()
             }
@@ -83,7 +121,7 @@ struct YellowView: View {
     var body: some View {
         NavigationLink(destination: GreenView()) {
             ZStack {
-                Color.yellow
+//                Color.yellow
                 VStack {
                     Color.clear.border(Color.green)
                             .frame(height: 200)
