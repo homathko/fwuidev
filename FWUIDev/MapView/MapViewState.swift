@@ -5,7 +5,20 @@ import SwiftUI
 import CoreLocation
 import MapboxMaps
 
-class MapViewState: ObservableObject {
+class MapViewState: ObservableObject, LocationConsumer {
+    func locationUpdate (newLocation: Location) {
+        userSprite = FWMapSprite(model: UserModel(coordinate: newLocation.coordinate), spriteType: .user)
+    }
+
+    @Published var userSprite: FWMapSpriteContract?
+    @Published var includeUserSprite: Bool = true
+
+    private var userPanConstraint: MapViewConstraintGroup? {
+        if let sprite = userSprite, includeUserSprite {
+            return .init(.pan([sprite], true))
+        } else { return nil }
+    }
+
     /// All annotations that are in .showing prop that are
     /// supposed to be kept in frame at one time
     var focusing: [FWMapSpriteContract] {
@@ -22,7 +35,10 @@ class MapViewState: ObservableObject {
 
     /// The current group of constraints
     public var constraints: MapViewConstraintGroup {
-        constraintsQueue.reduced()
+        var maybeUser: [MapViewConstraintGroup] = []
+        if let constraint = userPanConstraint { maybeUser = [constraint] }
+        return (maybeUser + constraintsQueue)
+                .reduced()
     }
     /// Remove all constraints
     func reset () {

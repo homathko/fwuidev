@@ -86,28 +86,6 @@ internal class MapboxViewCoordinator {
         let annotationsManager = annotationsManager ?? mapView.annotations.makePointAnnotationManager()
         annotationsManager.syncAnnotations(annotations.map { PointAnnotation(coordinate: $0.location.coordinate) })
         self.annotationsManager = annotationsManager
-//        let annotationsByIdentifier = Dictionary(uniqueKeysWithValues: annotations.map {
-//            ($0.id, $0)
-//        })
-//
-//        let oldAnnotationIds = Set(mapView.annotations.annotations.values.map(\.identifier))
-//        let newAnnotationIds = Set(annotationsByIdentifier.values.map(\.identifier))
-//
-//        let idsForAnnotationsToRemove = oldAnnotationIds.subtracting(newAnnotationIds)
-//        let annotationsToRemove = idsForAnnotationsToRemove.compactMap {
-//            mapView.annotations.annotations[$0]
-//        }
-//        if !annotationsToRemove.isEmpty {
-//            mapView.annotations.removeAnnotations(annotationsToRemove)
-//        }
-//
-//        let idsForAnnotationsToAdd = newAnnotationIds.subtracting(oldAnnotationIds)
-//        let annotationsToAdd = idsForAnnotationsToAdd.compactMap {
-//            annotationsByIdentifier[$0]
-//        }
-//        if !annotationsToAdd.isEmpty {
-//            mapView.annotations.addAnnotations(annotationsToAdd)
-//        }
     }
 
     /// Modify mapView according to MapViewState

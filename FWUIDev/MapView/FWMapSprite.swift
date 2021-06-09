@@ -7,10 +7,11 @@ import Turf
 import CoreGraphics
 
 enum FWMapSpriteType {
-    case asset, flightEvent, flightPath
+    case asset, user, flightEvent, flightPath
     func annotationType () -> AnnotationType {
         switch self {
             case .asset: return .point
+            case .user: return .point
             case .flightEvent: return .point
             case .flightPath: return .polyline
         }

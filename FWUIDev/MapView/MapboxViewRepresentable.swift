@@ -120,6 +120,9 @@ internal struct MapboxViewRepresentable: UIViewRepresentable {
         /// and set binding in MapboxView
         context.coordinator.mapMoved = mapMoved
 
+        /// Subscribe to device location updates
+        mapView.location.addLocationConsumer(newConsumer: state)
+
         return mapView
     }
 

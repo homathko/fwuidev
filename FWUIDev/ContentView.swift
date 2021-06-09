@@ -9,31 +9,21 @@ import SwiftUI
 import CoreLocation
 import UIKit
 
-struct AssetModel: Identifiable, Locatable, FWMapScreenDrawable {
-    var id = UUID().uuidString
-    var location: CLLocation
 
-    var spriteType: FWMapSpriteType = .asset
-    var point: CGPoint?
-
-    init (coordinate: CLLocationCoordinate2D) {
-        location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-    }
-}
 /// Seed data (will come from "AnnotationPublisher" conformer)
 var assets: [FWMapSprite] = [
     FWMapSprite(
-            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.666333, longitude: -123.214510)),
+            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.716700, longitude: -123.142448)),
             spriteType: .asset,
             name: "Pin 1"
     ),
     FWMapSprite(
-            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.685191, longitude: -123.140212)),
+            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.316054, longitude: -122.805009)),
             spriteType: .asset,
             name: "Pin 2"
     ),
     FWMapSprite(
-            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.784707, longitude: -123.159805)),
+            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.498542, longitude: -123.921399)),
             spriteType: .asset,
             name: "Pin 3"
     )
@@ -55,7 +45,7 @@ var assets: [FWMapSprite] = [
 struct ContentView: View {
     @StateObject var state: MapViewState = .init()
     @State var insets: UIEdgeInsets = .zero
-    @State private var cardState: FWCardState = .full
+    @State private var cardState: FWCardState = .partial
     @State private var selectedTab: Int = 0
     @State private var detentHeight: CGFloat = 200
     @State private var headerHeight: CGFloat = 0
@@ -78,8 +68,6 @@ struct ContentView: View {
         TabView(selection: selection) {
             ZStack {
                 FWMapView(insets: $insets, annotations: assets)
-                        .environmentObject(state)
-                        .edgesIgnoringSafeArea(.all)
                 FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight) {
 
                         YellowView()
@@ -101,14 +89,15 @@ struct ContentView: View {
                 } onFrameChange: { frame in
                     print(frame)
                     insets = .init(
-                            top: frame.origin.y,
-                            left: frame.origin.x,
-                            bottom: frame.height,
-                            right: UIScreen.main.bounds.width - frame.width
+                            top: frame.origin.y + 50,
+                            left: frame.origin.x + 50,
+                            bottom: UIScreen.main.bounds.height - frame.height,
+                            right: UIScreen.main.bounds.width - frame.width + 50
                     )
                 }
 //                SafeAreaInsetsView()
             }
+                    .environmentObject(state)
                     .tabItem {
                         Image(systemName: "hand.draw.fill")
                         Text("Finger Slap")
@@ -121,13 +110,16 @@ struct YellowView: View {
     var body: some View {
         NavigationLink(destination: GreenView()) {
             ZStack {
-//                Color.yellow
+                Color.yellow
+                Text("Pin 1")
                 VStack {
                     Color.clear.border(Color.green)
                             .frame(height: 200)
                     Spacer()
                 }
             }
+                    /// Reset map view state
+                    .mapConstraint(.pan([assets[0], assets[1], assets[2]], true))
         }
     }
 }
@@ -137,21 +129,31 @@ struct GreenView: View {
         NavigationLink(destination: RedView()) {
             ZStack {
                 Color.green
+                Text("Pin 2")
                 VStack {
                     Color.clear.border(Color.black)
                             .frame(height: 100)
                     Spacer()
                 }
             }
+                    .mapConstraint(.pan([assets[1]], false), merge: false)
         }
     }
 }
 
 struct RedView: View {
     var body: some View {
-        NavigationLink(destination: Color.black) {
-            Color.red.border(Color.black)
-                    .frame(height: 300)
+        NavigationLink(destination:
+            Color.black
+                .mapConstraint(.pan([assets[2]], false))
+                .mapConstraint(.zoom(10, false), merge: true)
+
+        ) {
+            ZStack {
+                Color.red.border(Color.black)
+                Text("Pin 3")
+            }
+                    .mapConstraint(.pan([assets[2]], true))
         }
     }
 }
