@@ -15,7 +15,7 @@ class Router: ObservableObject {
         Binding<Nav?>(get: {
             self._selection
         }, set: {
-            print("Router.selection = \($0)")
+            print("Router.selection = \(String(describing: $0))")
             self._selection = $0
         })
     }

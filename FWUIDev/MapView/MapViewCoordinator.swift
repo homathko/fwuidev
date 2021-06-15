@@ -11,23 +11,25 @@ import Turf
 @available(iOS 13.0, *)
 internal class MapboxViewCoordinator {
 
-    /// It holds a binding to the camera
     var state = MapViewState() {
         didSet {
             syncMapState()
         }
     }
 
+    var oldState: MapViewState?
+
+
     /// It also has a setter for annotations. When the annotations
     /// are set, it synchronizes them to the map
-    var annotations = [FWMapSpriteContract]() {
+    var annotations = [FWMapSprite]() {
         didSet {
             syncAnnotations()
         }
     }
 
     var insets: UIEdgeInsets = .zero
-    var mapMoved: (MapboxViewCoordinator) -> () = { _ in }
+    var mapMoved: ([FWMapSprite]) -> () = { _ in }
 
     /// This `mapView` property needs to be weak because
     /// the map view takes a strong reference to the coordinator
@@ -59,8 +61,23 @@ internal class MapboxViewCoordinator {
             /// will propagate this change to any other UI elements connected
             /// to the same binding.
             case .cameraChanged:
-                state.shouldUpdateView = false
-                mapMoved(self)
+                    if let mapView = self.mapView {
+                        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+                            let updated = self?.annotations.compactMap { sprite -> FWMapSprite? in
+                                var result = sprite
+                                result.point = mapView.mapboxMap.point(for: sprite.location.coordinate)
+                                if mapView.frame.contains(result.point!) {
+                                    return result
+                                } else {
+                                    return nil
+                                }
+                            }
+
+                            DispatchQueue.main.async { [weak self] in
+                                self?.mapMoved(updated ?? [])
+                            }
+                        }
+                    }
 
             /// When the map reloads, we need to re-sync the annotations
             case .mapLoaded:

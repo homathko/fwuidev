@@ -119,7 +119,7 @@ struct YellowView: View {
                 }
             }
                     /// Reset map view state
-                    .mapConstraint(.pan([assets[0], assets[1], assets[2]], true))
+                    .mapConstraint(.pan([assets[0], assets[1], assets[2]], false), merge: false)
         }
     }
 }

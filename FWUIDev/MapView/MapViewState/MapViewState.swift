@@ -5,40 +5,24 @@ import SwiftUI
 import CoreLocation
 import MapboxMaps
 
-class MapViewState: ObservableObject, LocationConsumer {
-    func locationUpdate (newLocation: Location) {
-        userSprite = FWMapSprite(model: UserModel(coordinate: newLocation.coordinate), spriteType: .user)
-    }
-
-    @Published var userSprite: FWMapSpriteContract?
-    @Published var includeUserSprite: Bool = true
-
-    private var userPanConstraint: MapViewConstraintGroup? {
-        if let sprite = userSprite, includeUserSprite {
-            return .init(.pan([sprite], true))
-        } else { return nil }
-    }
-
+class MapViewState: ObservableObject {
     /// All annotations that are in .showing prop that are
     /// supposed to be kept in frame at one time
-    var focusing: [FWMapSpriteContract] {
+    var focusing: [FWMapSprite] {
         constraints.pan?.annotations() ?? []
     }
     /// Is not nil, the user has selected one annotation among
     /// what is available in .showing by tapping it
-    var selectedByTap: FWMapSpriteContract?
+    var selectedByTap: FWMapSprite?
 
     /// Any applied constraints to the current map view
     /// and whether they are overridable
     /// When this property is set the map should update
-    @Published private var constraintsQueue: [MapViewConstraintGroup] = []
+    @Published internal var constraintsQueue: [MapViewConstraintGroup] = []
 
     /// The current group of constraints
     public var constraints: MapViewConstraintGroup {
-        var maybeUser: [MapViewConstraintGroup] = []
-        if let constraint = userPanConstraint { maybeUser = [constraint] }
-        return (maybeUser + constraintsQueue)
-                .reduced()
+        constraintsQueue.reduced()
     }
     /// Remove all constraints
     func reset () {
@@ -58,23 +42,21 @@ class MapViewState: ObservableObject, LocationConsumer {
         _ = constraintsQueue.popLast()
     }
 
-    /// Try to solve endless view update cycle
-    var shouldUpdateView = false
     var easeSpeed: TimeInterval = 0.2
 }
 
 enum MapViewTrackingMode {
     case roaming
-    case tracking([FWMapSpriteContract])
+    case tracking([FWMapSprite])
 }
 
-enum MapViewConstraint {
-    case pan([FWMapSpriteContract], Bool)
+enum MapViewConstraint: Equatable {
+    case pan([FWMapSprite], Bool)
     case zoom(Double, Bool)
     case heading(Double, Bool)
     case pitch(Double, Bool)
 
-    func annotations () -> [FWMapSpriteContract] {
+    func annotations () -> [FWMapSprite] {
         switch self {
             case .pan(let annotations, _): return annotations
             default: return []
@@ -103,7 +85,15 @@ enum MapViewConstraint {
     }
 }
 
-struct MapViewConstraintGroup {
+struct MapViewConstraintGroup: Equatable {
+    static func == (lhs: MapViewConstraintGroup, rhs: MapViewConstraintGroup) -> Bool {
+        lhs.pan == rhs.pan &&
+                lhs.zoom == rhs.zoom &&
+                lhs.heading == rhs.heading &&
+                lhs.pitch == rhs.pitch &&
+                lhs.shownAnnotations == rhs.shownAnnotations
+    }
+
     var pan: MapViewConstraint?
     var zoom: MapViewConstraint?
     var heading: MapViewConstraint?
@@ -125,7 +115,7 @@ struct MapViewConstraintGroup {
         self.init([constraint])
     }
 
-    var shownAnnotations: [FWMapSpriteContract] {
+    var shownAnnotations: [FWMapSprite] {
         pan?.annotations() ?? []
     }
 }

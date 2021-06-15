@@ -7,18 +7,20 @@ import Turf
 import CoreGraphics
 
 enum FWMapSpriteType {
-    case asset, user, flightEvent, flightPath
+    case asset, flightEvent, flightPath
     func annotationType () -> AnnotationType {
         switch self {
             case .asset: return .point
-            case .user: return .point
             case .flightEvent: return .point
             case .flightPath: return .polyline
         }
     }
 }
 
-struct FWMapSprite: Annotation, Locatable, FWMapScreenDrawable {
+struct FWMapSprite: Annotation, Locatable, FWMapScreenDrawable, Equatable {
+    static func == (lhs: FWMapSprite, rhs: FWMapSprite) -> Bool {
+        lhs.id == rhs.id
+    }
 
     /// The feature that is backing this annotation.
     var feature: Turf.Feature {

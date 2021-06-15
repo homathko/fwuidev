@@ -2,11 +2,14 @@
 // Created by Eric Lightfoot on 2021-06-04.
 //
 
+import CoreGraphics
 import SwiftUI
 
 struct AnimatingSprite: View {
     var sprite: FWMapSprite
-
+    /// SwiftUI being smart enough to not even call body:
+    /// if sprite.point changes
+    var position: CGPoint
     @State private var opacity = 0.4
     @State private var scale: CGFloat = 0.5
 
@@ -27,7 +30,7 @@ struct AnimatingSprite: View {
                     .font(.system(size: 13))
                     .scaleEffect(scale)
         }
-                .position(sprite.point!)
+                .position(position)
     }
 
     var repeatingAnimation: Animation {

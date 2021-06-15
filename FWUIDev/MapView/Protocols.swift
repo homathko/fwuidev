@@ -6,8 +6,6 @@ import MapboxMaps
 import CoreGraphics
 import CoreLocation
 
-typealias FWMapSpriteContract = Annotation & Locatable & FWMapScreenDrawable
-
 protocol FWMapScreenDrawable {
     var id: String { get }
 
