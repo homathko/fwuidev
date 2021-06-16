@@ -81,11 +81,9 @@ extension MapboxViewCoordinator {
             )
 
             let nextZoom = min(state.constraints().zoom?.zoomValue() ?? camera.zoom ?? 0, camera.zoom ?? 0)
-            print("camera: \(camera.zoom)")
-            print("max: \(nextZoom))")
             let boundsOptions = CameraBoundsOptions(maxZoom: nextZoom)
             try! mapView.mapboxMap.setCameraBounds(for: boundsOptions)
-//            camera.zoom = min(state.constraints().zoom?.zoomValue() ?? camera.zoom ?? 0, camera.zoom ?? 0)
+
             return camera
         } else {
             return CameraOptions(center: cameraState.center)

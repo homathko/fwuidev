@@ -9,7 +9,7 @@ import Turf
 
 /// Here's our custom `Coordinator` implementation.
 @available(iOS 13.0, *)
-internal class MapboxViewCoordinator {
+internal class MapboxViewCoordinator: GestureManagerDelegate  {
 
     var state = MapViewState.base {
         didSet {
@@ -53,7 +53,7 @@ internal class MapboxViewCoordinator {
 
     func notify (for event: Event) {
         guard let typedEvent = MapEvents.EventKind(rawValue: event.type),
-              let mapView = mapView else {
+              mapView != nil else {
             return
         }
         switch typedEvent {
@@ -61,7 +61,7 @@ internal class MapboxViewCoordinator {
             /// will propagate this change to any other UI elements connected
             /// to the same binding.
             case .cameraChanged:
-                    if let mapView = self.mapView {
+                    if let mapView = mapView {
                         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                             let updated = self?.annotations.compactMap { sprite -> FWMapSprite? in
                                 var result = sprite
@@ -82,12 +82,16 @@ internal class MapboxViewCoordinator {
             /// When the map reloads, we need to re-sync the annotations
             case .mapLoaded:
                 initialMapLoadComplete = true
+                mapView?.gestures.delegate = self
                 syncAnnotations()
+                syncMapState()
 
             default:
                 break
         }
     }
+
+    var parent: MapboxViewRepresentable?
 
     /// Only sync annotations once the map's initial load is complete
     private var initialMapLoadComplete = false
@@ -117,5 +121,9 @@ internal class MapboxViewCoordinator {
 
         let newCamera = camera(forState: state, padding: insets)
         mapView.camera.ease(to: newCamera, duration: 0.2)
+    }
+
+    func gestureBegan (for gestureType: GestureType) {
+        parent?.controller.state = .dragging
     }
 }

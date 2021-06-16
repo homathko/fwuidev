@@ -15,7 +15,7 @@ struct FWMapView: View {
 
     var body: some View {
         ZStack {
-            MapboxViewRepresentable(state: map.state, insets: $insets) { updated in
+            MapboxViewRepresentable(controller: map, insets: $insets) { updated in
                 self.visibleSprites = []
                 self.visibleSprites = updated
             }
