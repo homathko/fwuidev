@@ -15,17 +15,20 @@ extension View {
 }
 
 struct MapViewConstraintModifier: ViewModifier {
-    @EnvironmentObject var state: MapViewState
-    var constraints: [MapViewConstraint]
+    @EnvironmentObject var map: MapController
     var merge: Bool
 
+    private var group: MapViewConstraintGroup = .init()
+
     init (constraint: MapViewConstraint?, merge: Bool = true) {
-        constraints = constraint == nil ? [] : [constraint!]
+        if let constraint = constraint {
+            group = MapViewConstraintGroup(constraint)
+        }
         self.merge = merge
     }
 
     init (constraints: [MapViewConstraint], merge: Bool = true) {
-        self.constraints = constraints
+        group = MapViewConstraintGroup(constraints)
         self.merge = merge
     }
 
@@ -36,11 +39,18 @@ struct MapViewConstraintModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
                 .onAppear {
-                    if let _ = constraints.first {
-                        if !merge { state.reset() }
-                        state.push(constraints: constraints)
+                    if !merge {
+                        map.reset()
+                    }
+                    /// If navigating "back" to this view,
+                    /// the constraints are already here
+                    if let index = map.constraintsQueue.firstIndex(of: group) {
+                        /// And we want them to be the last element
+                        map.popAfter(index: index)
                     } else {
-                        if !merge { state.reset() }
+                        /// We are navigating forward and want to add
+                        /// this new constraint group
+                        map.push(group: group)
                     }
                 }
     }

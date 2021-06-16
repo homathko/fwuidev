@@ -38,7 +38,7 @@ struct FWNavigationView<Content: View>: UIViewControllerRepresentable, Equatable
         }
 
         func navigationController (_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
-            dump(navigationController)
+//            dump(navigationController)
         }
     }
 }

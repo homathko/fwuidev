@@ -10,7 +10,7 @@ extension MapboxViewCoordinator {
         guard let mapView = mapView else {
             return
         }
-        let reducedOnlyOncePlease = state.constraints /// <<< derived data
+        let reducedOnlyOncePlease = state.constraints() /// <<< derived data
         if case .pan(_, let canOverride) = reducedOnlyOncePlease.pan {
             mapView.gestures.options.scrollEnabled = canOverride
         }
@@ -32,7 +32,7 @@ extension MapboxViewCoordinator {
 
         let cameraState = mapView.cameraState
 
-        let focused = state.focusing
+        let focused = state.focusing()
         /// With no focus, camera options should not be modified
         if focused.count == 0 {
             return CameraOptions(cameraState: cameraState, padding: padding)
@@ -41,7 +41,7 @@ extension MapboxViewCoordinator {
             /// be used if not specified in a constraint
         else if focused.count == 1 {
             var nextZoom: CGFloat = 0.0
-            if let zoom = state.constraints.zoom {
+            if let zoom = state.constraints().zoom {
                 /// There is a specified zoom constraint
                 if case .zoom(let value, _) = zoom {
                     nextZoom = CGFloat(value)
@@ -68,19 +68,30 @@ extension MapboxViewCoordinator {
         else if focused.count > 1 {
             var camera = mapView.mapboxMap.camera(
                 for: Geometry.polygon(Polygon([
-                    state.focusing.map {
+                    state.focusing().map {
                         $0.location.coordinate
                     }
                 ])),
-                padding: padding,
-                bearing: state.constraints.heading?.headingValue(),
+                padding: padding.maximumHeight(500),
+                bearing: state.constraints().heading?.headingValue(),
                 pitch: min(15, mapView.cameraState.pitch)
             )
 
-//            camera.zoom = max(state.constraints.zoom?.zoomValue() ?? camera.zoom ?? 0, camera.zoom ?? 0)
+            camera.zoom = max(state.constraints().zoom?.zoomValue() ?? camera.zoom ?? 0, camera.zoom ?? 0)
             return camera
         } else {
             return CameraOptions(center: cameraState.center)
         }
+    }
+}
+
+extension UIEdgeInsets {
+    func maximumHeight (_ height: CGFloat) -> UIEdgeInsets {
+        .init(
+            top: self.top,
+            left: self.left,
+            bottom: min(self.bottom, height),
+            right: self.right
+          )
     }
 }

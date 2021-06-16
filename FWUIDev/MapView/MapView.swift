@@ -7,7 +7,7 @@ import UIKit
 import MapboxMaps
 
 struct FWMapView: View {
-    @StateObject var state: MapViewState
+    @StateObject var map: MapController
     @Binding var insets: UIEdgeInsets
     var annotations: [FWMapSprite]
 
@@ -15,7 +15,7 @@ struct FWMapView: View {
 
     var body: some View {
         ZStack {
-            MapboxViewRepresentable(state: state, insets: $insets) { updated in
+            MapboxViewRepresentable(state: map.state, insets: $insets) { updated in
                 self.visibleSprites = []
                 self.visibleSprites = updated
             }

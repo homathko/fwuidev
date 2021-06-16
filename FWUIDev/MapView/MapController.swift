@@ -5,7 +5,34 @@ import SwiftUI
 import CoreLocation
 import MapboxMaps
 
-class MapViewState: ObservableObject {
+enum MapViewState: Equatable {
+    /// Starting state with (or without) user location
+    /// Gesturing enabled (free/roaming)
+    case base
+    /// Constrained to focus on group of sprites
+    case constrained([MapViewConstraintGroup])
+    /// Current gesture
+    case dragging
+    /// A cancellable animation is in progress
+    case animating
+
+    func constraints () -> MapViewConstraintGroup {
+        switch self {
+            case .constrained(let constraints):
+                return constraints.reduced()
+            default: return MapViewConstraintGroup()
+        }
+    }
+
+    func focusing () -> [FWMapSprite] {
+        constraints().pan?.annotations() ?? []
+    }
+}
+
+class MapController: ObservableObject {
+    /// Map view state
+    @Published var state: MapViewState = .base
+
     /// All annotations that are in .showing prop that are
     /// supposed to be kept in frame at one time
     var focusing: [FWMapSprite] {
@@ -18,7 +45,7 @@ class MapViewState: ObservableObject {
     /// Any applied constraints to the current map view
     /// and whether they are overridable
     /// When this property is set the map should update
-    @Published internal var constraintsQueue: [MapViewConstraintGroup] = []
+    internal var constraintsQueue: [MapViewConstraintGroup] = []
 
     /// The current group of constraints
     public var constraints: MapViewConstraintGroup {
@@ -27,27 +54,33 @@ class MapViewState: ObservableObject {
     /// Remove all constraints
     func reset () {
         constraintsQueue = []
+        state = .base
     }
-    /// Add new constraints to the FIFO queue
+    /// Add new constraints to the FILO queue
     func push (constraints: [MapViewConstraint]) {
         let group = MapViewConstraintGroup(constraints)
         constraintsQueue.append(group)
+        state = .constrained(constraintsQueue)
     }
     func push (constraint: MapViewConstraint) {
         let group = MapViewConstraintGroup(constraint)
         constraintsQueue.append(group)
+        state = .constrained(constraintsQueue)
+    }
+    func push (group: MapViewConstraintGroup) {
+        constraintsQueue.append(group)
+        state = .constrained(constraintsQueue)
     }
     /// Pop the last constraint group off
-    func pop (constraints: MapViewConstraintGroup) {
-        _ = constraintsQueue.popLast()
+    func popAfter (index: Int) {
+        let last = constraintsQueue.count - (index + 1)
+        constraintsQueue.removeLast(last)
+        if constraintsQueue.count == 0 {
+            state = .base
+        } else {
+            state = .constrained(constraintsQueue)
+        }
     }
-
-    var easeSpeed: TimeInterval = 0.2
-}
-
-enum MapViewTrackingMode {
-    case roaming
-    case tracking([FWMapSprite])
 }
 
 enum MapViewConstraint: Equatable {

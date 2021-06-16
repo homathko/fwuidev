@@ -20,7 +20,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
     /// other UI elements to stay in sync as the user interacts
     /// with the map.
 
-    @ObservedObject var state: MapViewState
+    var state: MapViewState
 
     /// The available visible area for the map edge insets can be changed
     @Binding var insets: UIEdgeInsets
@@ -121,7 +121,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
     /// If your `SwiftUIMapView` is reconfigured externally, SwiftUI will invoke `updateUIView(_:context:)`
     /// to give you an opportunity to re-sync the state of the underlying map view.
     func updateUIView (_ mapView: MapView, context: Context) {
-        defer { context.coordinator.oldState = state.copy() as? MapViewState }
+        defer { context.coordinator.oldState = state }
 
 
         /// Since changing the style causes annotations to be removed from the map

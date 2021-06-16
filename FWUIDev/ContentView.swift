@@ -54,7 +54,7 @@ var assets: [FWMapSprite] = [
 //        }
 
 struct ContentView: View {
-    @StateObject var state: MapViewState = .init()
+    @StateObject var map: MapController = .init()
     @State var insets: UIEdgeInsets = .zero
     @State private var cardState: FWCardState = .partial
     @State private var selectedTab: Int = 0
@@ -78,7 +78,7 @@ struct ContentView: View {
         /// Begin TabView
         TabView(selection: selection) {
             ZStack {
-                FWMapView(state: state, insets: $insets, annotations: assets)
+                FWMapView(map: map, insets: $insets, annotations: assets)
                 FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight) {
 
                         YellowView()
@@ -107,7 +107,7 @@ struct ContentView: View {
                 }
                 SafeAreaInsetsView()
             }
-                    .environmentObject(state)
+                    .environmentObject(map)
                     .tabItem {
                         Image(systemName: "hand.draw.fill")
                         Text("Finger Slap")
@@ -157,7 +157,7 @@ struct RedView: View {
             Color.black
                 .mapConstraints([
 //                    .pan([assets[2]], false),
-                    .zoom(10, false)
+                    .zoom(12, false)
                 ] , merge: true)
         ) {
             ZStack {

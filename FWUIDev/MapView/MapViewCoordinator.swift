@@ -11,7 +11,7 @@ import Turf
 @available(iOS 13.0, *)
 internal class MapboxViewCoordinator {
 
-    var state = MapViewState() {
+    var state = MapViewState.base {
         didSet {
             syncMapState()
         }
@@ -116,6 +116,6 @@ internal class MapboxViewCoordinator {
         enableGestures(forState: state)
 
         let newCamera = camera(forState: state, padding: insets)
-        mapView.camera.ease(to: newCamera, duration: state.easeSpeed)
+        mapView.camera.ease(to: newCamera, duration: 0.2)
     }
 }
