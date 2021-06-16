@@ -14,8 +14,11 @@ extension MapboxViewCoordinator {
         if case .pan(_, let canOverride) = reducedOnlyOncePlease.pan {
             mapView.gestures.options.scrollEnabled = canOverride
         }
-        if case .zoom(_, let canOverride) = reducedOnlyOncePlease.zoom {
+        if case .zoom(let zoom, let canOverride) = reducedOnlyOncePlease.zoom {
             mapView.gestures.options.zoomEnabled = canOverride
+            if canOverride {
+                try! mapView.mapboxMap.setCameraBounds(for: CameraBoundsOptions(maxZoom: CGFloat(zoom + 2)))
+            }
         }
         if case .heading(_, let canOverride) = reducedOnlyOncePlease.heading {
             mapView.gestures.options.rotateEnabled = canOverride
@@ -77,7 +80,12 @@ extension MapboxViewCoordinator {
                 pitch: min(15, mapView.cameraState.pitch)
             )
 
-            camera.zoom = max(state.constraints().zoom?.zoomValue() ?? camera.zoom ?? 0, camera.zoom ?? 0)
+            let nextZoom = min(state.constraints().zoom?.zoomValue() ?? camera.zoom ?? 0, camera.zoom ?? 0)
+            print("camera: \(camera.zoom)")
+            print("max: \(nextZoom))")
+            let boundsOptions = CameraBoundsOptions(maxZoom: nextZoom)
+            try! mapView.mapboxMap.setCameraBounds(for: boundsOptions)
+//            camera.zoom = min(state.constraints().zoom?.zoomValue() ?? camera.zoom ?? 0, camera.zoom ?? 0)
             return camera
         } else {
             return CameraOptions(center: cameraState.center)

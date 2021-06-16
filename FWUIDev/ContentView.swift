@@ -129,7 +129,10 @@ struct YellowView: View {
                 }
             }
                     /// Reset map view state
-                    .mapConstraint(.pan([assets[0], assets[1], assets[2]], false), merge: false)
+                    .mapConstraints([
+                        .pan([assets[0]], true),
+                        .zoom(9, true)
+                    ], merge: false)
         }
     }
 }
@@ -146,7 +149,8 @@ struct GreenView: View {
                     Spacer()
                 }
             }
-                    .mapConstraint(.pan([assets[1]], false), merge: false)
+                    /// Merge in another sprite
+                    .mapConstraint(.pan([assets[1]], false))
         }
     }
 }
@@ -155,16 +159,16 @@ struct RedView: View {
     var body: some View {
         NavigationLink(destination:
             Color.black
-                .mapConstraints([
-//                    .pan([assets[2]], false),
-                    .zoom(12, false)
-                ] , merge: true)
+//                .mapConstraints([
+////                    .pan([assets[2]], false),
+//                    .zoom(12, false)
+//                ] , merge: true)
         ) {
             ZStack {
                 Color.red.border(Color.black)
                 Text("Pin 3")
             }
-                    .mapConstraint(.pan([assets[2]], true), merge: false)
+                    .mapConstraint(.pan([assets[2]], true))
         }
     }
 }
