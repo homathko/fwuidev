@@ -9,6 +9,17 @@ import SwiftUI
 import CoreLocation
 import UIKit
 
+struct AssetModel: Identifiable, Locatable, FWMapScreenDrawable {
+    var id = UUID().uuidString
+    var location: CLLocation
+
+    var spriteType: FWMapSpriteType = .asset
+    var point: CGPoint?
+
+    init (coordinate: CLLocationCoordinate2D) {
+        location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+    }
+}
 
 /// Seed data (will come from "AnnotationPublisher" conformer)
 var assets: [FWMapSprite] = [
@@ -67,7 +78,7 @@ struct ContentView: View {
         /// Begin TabView
         TabView(selection: selection) {
             ZStack {
-                FWMapView(insets: $insets, annotations: assets)
+                FWMapView(state: state, insets: $insets, annotations: assets)
                 FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight) {
 
                         YellowView()
@@ -87,7 +98,6 @@ struct ContentView: View {
                                 )
 
                 } onFrameChange: { frame in
-                    print(frame)
                     insets = .init(
                             top: frame.origin.y + 50,
                             left: frame.origin.x + 50,
@@ -95,7 +105,7 @@ struct ContentView: View {
                             right: UIScreen.main.bounds.width - frame.width + 50
                     )
                 }
-//                SafeAreaInsetsView()
+                SafeAreaInsetsView()
             }
                     .environmentObject(state)
                     .tabItem {
@@ -145,15 +155,16 @@ struct RedView: View {
     var body: some View {
         NavigationLink(destination:
             Color.black
-                .mapConstraint(.pan([assets[2]], false))
-                .mapConstraint(.zoom(10, false), merge: true)
-
+                .mapConstraints([
+//                    .pan([assets[2]], false),
+                    .zoom(10, false)
+                ] , merge: true)
         ) {
             ZStack {
                 Color.red.border(Color.black)
                 Text("Pin 3")
             }
-                    .mapConstraint(.pan([assets[2]], true))
+                    .mapConstraint(.pan([assets[2]], true), merge: false)
         }
     }
 }

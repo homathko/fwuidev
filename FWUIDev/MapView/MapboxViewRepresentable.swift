@@ -123,7 +123,6 @@ struct MapboxViewRepresentable: UIViewRepresentable {
     func updateUIView (_ mapView: MapView, context: Context) {
         defer { context.coordinator.oldState = state.copy() as? MapViewState }
 
-        context.coordinator.insets = insets
 
         /// Since changing the style causes annotations to be removed from the map
         /// we only call the setter if the value has changed.
@@ -135,8 +134,9 @@ struct MapboxViewRepresentable: UIViewRepresentable {
         /// they need to be applied *after* `.mapLoaded`
         context.coordinator.annotations = annotations
 
-        if state != context.coordinator.oldState {
+        if state != context.coordinator.oldState || insets != context.coordinator.insets {
             /// Commence updating map view
+            context.coordinator.insets = insets
             context.coordinator.state = state
         }
     }

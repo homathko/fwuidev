@@ -51,6 +51,9 @@ extension MapboxViewCoordinator {
                 nextZoom = mapView.cameraState.zoom
             }
 
+            nextZoom = max(6, mapView.cameraState.zoom)
+            nextZoom = min(10, mapView.cameraState.zoom)
+
             return CameraOptions(
                     cameraState: cameraState,
                     center: focused.first!.location.coordinate,
@@ -71,10 +74,10 @@ extension MapboxViewCoordinator {
                 ])),
                 padding: padding,
                 bearing: state.constraints.heading?.headingValue(),
-                pitch: max(15, mapView.cameraState.pitch)
+                pitch: min(15, mapView.cameraState.pitch)
             )
 
-            camera.zoom = max(state.constraints.zoom?.zoomValue() ?? camera.zoom ?? 0, camera.zoom ?? 0)
+//            camera.zoom = max(state.constraints.zoom?.zoomValue() ?? camera.zoom ?? 0, camera.zoom ?? 0)
             return camera
         } else {
             return CameraOptions(center: cameraState.center)
