@@ -19,6 +19,11 @@ struct AssetModel: Identifiable, Locatable, FWMapScreenDrawable {
     init (coordinate: CLLocationCoordinate2D) {
         location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
     }
+
+    var shouldDisplayAltitude: Bool { true }
+    var shouldDisplaySpeed: Bool { true }
+    var rotationModifier: RotationModifier { .alwaysUp }
+    var anchorPoint: UnitPoint { .center }
 }
 
 /// Seed data (will come from "AnnotationPublisher" conformer)
@@ -60,6 +65,7 @@ struct ContentView: View {
     @State private var selectedTab: Int = 0
     @State private var detentHeight: CGFloat = 200
     @State private var headerHeight: CGFloat = 0
+    @State var cardHeight: CGFloat = UIScreen.main.bounds.height
 
     var body: some View {
         /// Observe taps on tab bar items that change
@@ -78,8 +84,12 @@ struct ContentView: View {
         /// Begin TabView
         TabView(selection: selection) {
             ZStack {
-                FWMapView(map: map, insets: $insets, annotations: assets)
-                FWCardView(cardState: $cardState, detentHeight: $detentHeight, headerHeight: $headerHeight) {
+                FWMapView(map: map, cardHeightChanged: { _ in }, annotations: assets)
+                FWCardView(
+                        cardState: $cardState,
+                        detentHeight: $detentHeight,
+                        headerHeight: $headerHeight,
+                        cardHeight: $cardHeight) {
 
                         YellowView()
                                 .navigationBarTitle("Fucking SwiftUI", displayMode: .inline)
@@ -97,14 +107,8 @@ struct ContentView: View {
                                         }
                                 )
 
-                } onFrameChange: { frame in
-                    insets = .init(
-                            top: frame.origin.y + 50,
-                            left: frame.origin.x + 50,
-                            bottom: UIScreen.main.bounds.height - frame.height,
-                            right: UIScreen.main.bounds.width - frame.width + 50
-                    )
                 }
+
                 SafeAreaInsetsView()
             }
                     .environmentObject(map)

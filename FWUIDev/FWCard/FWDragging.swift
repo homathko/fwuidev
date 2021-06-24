@@ -40,8 +40,6 @@ extension FWCardView {
                 newState = .partial
             } else if Int(positionBelow) == collapsedPosition {
                 newState = .collapsed
-            } else {
-                print("No condition met")
             }
 
         } else if verticalDirection < 0 {
@@ -50,8 +48,6 @@ extension FWCardView {
                 newState = .full
             } else if Int(positionAbove) == Int(detentPosition) {
                 newState = .partial
-            } else {
-                print("No condition met")
             }
 
         } else {
@@ -62,14 +58,11 @@ extension FWCardView {
                 newState = .partial
             } else if Int(closestPosition) == collapsedPosition {
                 newState = .collapsed
-            } else {
-                print("No condition met")
             }
         }
 
-        if let state = newState {
-            cardState = state
-        }
+        assert(newState != nil, "FWCard state didn't meet any condition to update")
+        cardState = newState!
     }
 }
 

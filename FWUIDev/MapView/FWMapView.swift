@@ -7,15 +7,15 @@ import UIKit
 import MapboxMaps
 
 struct FWMapView: View {
-    @StateObject var map: MapController
-    @Binding var insets: UIEdgeInsets
+    @ObservedObject var map: MapController
+    var cardHeightChanged: (CGFloat) -> ()
     var annotations: [FWMapSprite]
 
     @State var visibleSprites = [FWMapSprite]()
 
     var body: some View {
         ZStack {
-            MapboxViewRepresentable(controller: map, insets: $insets) { updated in
+            MapboxViewRepresentable(controller: map) { updated in
                 self.visibleSprites = []
                 self.visibleSprites = updated
             }
@@ -23,8 +23,12 @@ struct FWMapView: View {
                 .annotations(annotations)
 
             ForEach(visibleSprites, id: \.id) { sprite in
-                AnimatingSprite(sprite: sprite, position: sprite.point!)
+                AnimatingSprite(
+                        sprite: sprite,
+                        position: sprite.point!
+                )
             }
         }
+            .environmentObject(map)
     }
 }

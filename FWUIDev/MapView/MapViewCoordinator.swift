@@ -8,27 +8,35 @@ import Combine
 import Turf
 
 /// Here's our custom `Coordinator` implementation.
-@available(iOS 13.0, *)
-internal class MapboxViewCoordinator: GestureManagerDelegate  {
+internal class MapboxViewCoordinator: GestureManagerDelegate {
 
     var state = MapViewState.base {
-        didSet {
-            syncMapState()
+        willSet {
+            if newValue != state {
+                syncMapState()
+            }
         }
     }
-
-    var oldState: MapViewState?
 
 
     /// It also has a setter for annotations. When the annotations
     /// are set, it synchronizes them to the map
     var annotations = [FWMapSprite]() {
-        didSet {
-            syncAnnotations()
+        willSet {
+            if newValue != annotations {
+                syncAnnotations()
+            }
         }
     }
 
-    var insets: UIEdgeInsets = .zero
+    var cardHeight: CGFloat = .zero {
+        willSet {
+            if newValue != cardHeight {
+                syncMapState()
+            }
+        }
+    }
+
     var mapMoved: ([FWMapSprite]) -> () = { _ in }
 
     /// This `mapView` property needs to be weak because
@@ -51,7 +59,7 @@ internal class MapboxViewCoordinator: GestureManagerDelegate  {
         }
     }
 
-    func notify (for event: Event) {
+    func notify (for event: MapboxMaps.Event) {
         guard let typedEvent = MapEvents.EventKind(rawValue: event.type),
               mapView != nil else {
             return
@@ -61,28 +69,15 @@ internal class MapboxViewCoordinator: GestureManagerDelegate  {
             /// will propagate this change to any other UI elements connected
             /// to the same binding.
             case .cameraChanged:
-                    if let mapView = mapView {
-                        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-                            let updated = self?.annotations.compactMap { sprite -> FWMapSprite? in
-                                var result = sprite
-                                result.point = mapView.mapboxMap.point(for: sprite.location.coordinate)
-                                if mapView.frame.contains(result.point!) {
-                                    return result
-                                } else {
-                                    return nil
-                                }
-                            }
-
-                            DispatchQueue.main.async { [weak self] in
-                                self?.mapMoved(updated ?? [])
-                            }
-                        }
-                    }
+                syncSwiftUI()
 
             /// When the map reloads, we need to re-sync the annotations
             case .mapLoaded:
                 initialMapLoadComplete = true
                 mapView?.gestures.delegate = self
+                /// Immediately limit pitch angle due to 2D annotations
+                let boundsOptions = CameraBoundsOptions(maxPitch: 24)
+                try! mapView?.mapboxMap.setCameraBounds(for: boundsOptions)
                 syncAnnotations()
                 syncMapState()
 
@@ -105,8 +100,14 @@ internal class MapboxViewCoordinator: GestureManagerDelegate  {
         }
 
         let annotationsManager = annotationsManager ?? mapView.annotations.makePointAnnotationManager()
-        annotationsManager.syncAnnotations(annotations.map { PointAnnotation(coordinate: $0.location.coordinate) })
+        annotationsManager.syncAnnotations(annotations.map {
+            PointAnnotation(coordinate: $0.location.coordinate)
+        })
         self.annotationsManager = annotationsManager
+
+        /// Here is the other call site for sending updated map sprite models back to SwiftUI
+        /// (eg when an annotation moves but the camera doesn't)
+        syncSwiftUI()
     }
 
     /// Modify mapView according to MapViewState
@@ -119,11 +120,37 @@ internal class MapboxViewCoordinator: GestureManagerDelegate  {
         /// Update gesture availability according to updated constraints
         enableGestures(forState: state)
 
+        let insets = UIEdgeInsets(top: 0, left: 0, bottom: cardHeight, right: 0)
         let newCamera = camera(forState: state, padding: insets)
-        mapView.camera.ease(to: newCamera, duration: 0.2)
+        mapView.camera.ease(to: newCamera, duration: state == .gesturing ? 0 : 1.0)
+    }
+
+    func syncSwiftUI () {
+        if let mapView = mapView {
+            DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+                let updated = self?.annotations.compactMap { sprite -> FWMapSprite? in
+                    var result = sprite
+                    result.point = mapView.mapboxMap.point(for: sprite.location.coordinate)
+                    if mapView.frame.contains(result.point!) {
+                        return result
+                    } else {
+                        return nil
+                    }
+                }
+
+                DispatchQueue.main.async { [weak self] in
+                    self?.parent?.controller.camera = MapCameraState(
+                            heading: mapView.cameraState.bearing,
+                            zoom: mapView.cameraState.zoom,
+                            pitch: mapView.cameraState.pitch
+                    )
+                    self?.mapMoved(updated ?? [])
+                }
+            }
+        }
     }
 
     func gestureBegan (for gestureType: GestureType) {
-        parent?.controller.state = .dragging
+        parent?.controller.state = .gesturing
     }
 }

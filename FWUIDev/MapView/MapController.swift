@@ -5,16 +5,24 @@ import SwiftUI
 import CoreLocation
 import MapboxMaps
 
-enum MapViewState: Equatable {
+enum MapViewState:  Equatable {
     /// Starting state with (or without) user location
     /// Gesturing enabled (free/roaming)
     case base
     /// Constrained to focus on group of sprites
     case constrained([MapViewConstraintGroup])
     /// Current gesture
-    case dragging
+    case gesturing
     /// A cancellable animation is in progress
     case animating
+
+    static func == (lhs: MapViewState, rhs: MapViewState) -> Bool {
+        switch (lhs, rhs) {
+            case (.constrained(let lha), .constrained(let rha)):
+                return lha == rha
+            default: return false
+        }
+    }
 
     func constraints () -> MapViewConstraintGroup {
         switch self {
@@ -29,9 +37,21 @@ enum MapViewState: Equatable {
     }
 }
 
+struct MapCameraState {
+    var heading: Double
+    var zoom: CGFloat
+    var pitch: CGFloat
+}
+
 class MapController: ObservableObject {
     /// Map view state
     @Published var state: MapViewState = .base
+    /// For interruptions of current state (caused
+    /// by card view)
+    private var previousState: MapViewState?
+
+    @Published var camera = MapCameraState(heading: 0, zoom: 0, pitch: 0)
+    @Published var cardHeight: CGFloat = .zero
 
     /// All annotations that are in .showing prop that are
     /// supposed to be kept in frame at one time
@@ -71,6 +91,14 @@ class MapController: ObservableObject {
         constraintsQueue.append(group)
         state = .constrained(constraintsQueue)
     }
+    func pop () {
+        constraintsQueue.removeLast()
+        if constraintsQueue.count == 0 {
+            state = .base
+        } else {
+            state = .constrained(constraintsQueue)
+        }
+    }
     /// Pop the last constraint group off
     func popAfter (index: Int) {
         let last = constraintsQueue.count - (index + 1)
@@ -80,6 +108,15 @@ class MapController: ObservableObject {
         } else {
             state = .constrained(constraintsQueue)
         }
+    }
+    func interruptState (withState state: MapViewState) {
+        previousState = state
+        self.state = state
+    }
+    func endInterruption () {
+        assert(previousState != nil, "map.endInterruption called without a current interruption")
+        state = previousState!
+        previousState = nil
     }
 }
 

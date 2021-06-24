@@ -22,9 +22,6 @@ struct MapboxViewRepresentable: UIViewRepresentable {
 
     @ObservedObject var controller: MapController
 
-    /// The available visible area for the map edge insets can be changed
-    @Binding var insets: UIEdgeInsets
-
     /// Update parent view when camera changes, etc
     var mapMoved: ([FWMapSprite]) -> () = { _ in }
 
@@ -81,7 +78,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
             // Add terrain
             var demSource = RasterDemSource()
             demSource.url = "mapbox://mapbox.mapbox-terrain-dem-v1"
-            demSource.tileSize = 512
+            demSource.tileSize = 514
             demSource.maxzoom = 14.0
 
             do {
@@ -102,6 +99,9 @@ struct MapboxViewRepresentable: UIViewRepresentable {
             skyLayer.skyAtmosphereSunIntensity = .constant(5.0)
 
             try! mapView.mapboxMap.style.addLayer(skyLayer)
+
+            /// This built-in solution doesn't jive with the FWMapSprite set up
+//            mapView.location.options.puckType = .puck2D()
         }
 
         updateUIView(mapView, context: context)
@@ -125,9 +125,6 @@ struct MapboxViewRepresentable: UIViewRepresentable {
     /// If your `SwiftUIMapView` is reconfigured externally, SwiftUI will invoke `updateUIView(_:context:)`
     /// to give you an opportunity to re-sync the state of the underlying map view.
     func updateUIView (_ mapView: MapView, context: Context) {
-        defer { context.coordinator.oldState = controller.state }
-
-
         /// Since changing the style causes annotations to be removed from the map
         /// we only call the setter if the value has changed.
         if mapView.mapboxMap.style.uri != styleURI {
@@ -138,10 +135,8 @@ struct MapboxViewRepresentable: UIViewRepresentable {
         /// they need to be applied *after* `.mapLoaded`
         context.coordinator.annotations = annotations
 
-        if controller.state != context.coordinator.oldState || insets != context.coordinator.insets {
-            /// Commence updating map view
-            context.coordinator.insets = insets
-            context.coordinator.state = controller.state
-        }
+        context.coordinator.state = controller.state
+
+        context.coordinator.cardHeight = controller.cardHeight
     }
 }

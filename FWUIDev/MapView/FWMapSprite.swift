@@ -4,47 +4,72 @@
 
 import MapboxMaps
 import Turf
+import SwiftUI
 import CoreGraphics
 
 enum FWMapSpriteType {
-    case asset, flightEvent, flightPath
-    func annotationType () -> AnnotationType {
-        switch self {
-            case .asset: return .point
-            case .flightEvent: return .point
-            case .flightPath: return .polyline
-        }
-    }
+    case asset, flightEvent, flightPath, user
 }
 
 struct FWMapSprite: Annotation, Locatable, FWMapScreenDrawable, Equatable {
-    static func == (lhs: FWMapSprite, rhs: FWMapSprite) -> Bool {
-        lhs.id == rhs.id
-    }
-
     /// The feature that is backing this annotation.
     var feature: Turf.Feature {
-        Turf.Feature(Point(location.coordinate))
+        Turf.Feature(geometry: .point(Point(location.coordinate)))
     }
 
     var title: String? = nil
 
-    var type: AnnotationType { spriteType.annotationType() }
-
     var isSelected: Bool = false
-    var userInfo: [String: Any]? = nil
+
+    var userInfo: [String: Any]?
 
     var id: String
+
     var location: CLLocation
     var point: CGPoint? = nil
     var spriteType: FWMapSpriteType
     var course: Int? = nil
     var speed: Double? = nil
 
-    init <V: Identifiable & Locatable>(model: V, spriteType: FWMapSpriteType, name: String? = nil) where V.ID == String {
-        id = model.id
+    init <V: Locatable>(
+            model: V,
+            spriteType: FWMapSpriteType,
+            name: String? = nil,
+            userInfo: [String: Any]? = nil
+    ) {
+        id = UUID().uuidString
         location = model.location
         self.spriteType = spriteType
         title = name
+        self.userInfo = userInfo
+        if let hasCourseSpeed = model as? HasCourseSpeed {
+            course = hasCourseSpeed.course
+            speed = hasCourseSpeed.speed
+        }
     }
+
+    static func == (lhs: FWMapSprite, rhs: FWMapSprite) -> Bool {
+        lhs.id == rhs.id &&
+                lhs.location.timestamp == rhs.location.timestamp
+    }
+
+    var isTransmitting: Bool {
+        true
+    }
+
+    var shouldDisplayAltitude: Bool {
+        isTransmitting
+    }
+
+    var shouldDisplaySpeed: Bool {
+        isTransmitting
+    }
+
+    var rotationModifier: RotationModifier {
+        .heading(userInfo?["course"] as? Int ?? 0)
+    }
+
+    var anchorPoint: UnitPoint = .center
+
+
 }

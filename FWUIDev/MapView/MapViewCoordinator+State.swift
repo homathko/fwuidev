@@ -42,33 +42,33 @@ extension MapboxViewCoordinator {
         }
             /// With a single focii, previous camera zoom factor could
             /// be used if not specified in a constraint
-        else if focused.count == 1 {
-            var nextZoom: CGFloat = 0.0
-            if let zoom = state.constraints().zoom {
-                /// There is a specified zoom constraint
-                if case .zoom(let value, _) = zoom {
-                    nextZoom = CGFloat(value)
-                }
-            } else {
-                /// No constraint, use previous
-                nextZoom = mapView.cameraState.zoom
-            }
-
-            nextZoom = max(6, mapView.cameraState.zoom)
-            nextZoom = min(10, mapView.cameraState.zoom)
-
-            return CameraOptions(
-                    cameraState: cameraState,
-                    center: focused.first!.location.coordinate,
-                    padding: padding,
-                    zoom: nextZoom
-            )
-        }
+//        else if focused.count == 1 {
+//            var nextZoom: CGFloat = 0.0
+//            if let zoom = state.constraints().zoom {
+//                /// There is a specified zoom constraint
+//                if case .zoom(let value, _) = zoom {
+//                    nextZoom = CGFloat(value)
+//                }
+//            } else {
+//                /// No constraint, use previous
+//                nextZoom = mapView.cameraState.zoom
+//            }
+//
+//            nextZoom = max(6, mapView.cameraState.zoom)
+//            nextZoom = min(10, mapView.cameraState.zoom)
+//
+//            return CameraOptions(
+//                    cameraState: cameraState,
+//                    center: focused.first!.location.coordinate,
+//                    padding: padding,
+//                    zoom: nextZoom
+//            )
+//        }
 
         /// With many focii, zoom should be set to fit them "comfortably"
         /// (padded) but zooming farther away should be allowed if
         /// the constraint is overridable
-        else if focused.count > 1 {
+        else if focused.count >= 1 {
             var camera = mapView.mapboxMap.camera(
                 for: Geometry.polygon(Polygon([
                     state.focusing().map {
@@ -80,8 +80,9 @@ extension MapboxViewCoordinator {
                 pitch: min(15, mapView.cameraState.pitch)
             )
 
-            let nextZoom = min(state.constraints().zoom?.zoomValue() ?? camera.zoom ?? 0, camera.zoom ?? 0)
-            let boundsOptions = CameraBoundsOptions(maxZoom: nextZoom)
+            let maxZoom: CGFloat = 12.0
+            let nextZoom = min(state.constraints().zoom?.zoomValue() ?? maxZoom, maxZoom)
+            let boundsOptions = CameraBoundsOptions(maxZoom: nextZoom, maxPitch: 24)
             try! mapView.mapboxMap.setCameraBounds(for: boundsOptions)
 
             return camera

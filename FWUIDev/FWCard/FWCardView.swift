@@ -6,15 +6,23 @@ import Foundation
 import SwiftUI
 
 struct FWCardView<CardContent: View>: View {
+    /// FWCardView and all child views will
+    /// need to take part in changing maps state
+    @EnvironmentObject var map: MapController
+
     @Binding var cardState: FWCardState
     @Binding var detentHeight: CGFloat
     @Binding var headerHeight: CGFloat
+    @Binding var cardHeight: CGFloat
     var bgColor: Color = Color(UIColor.systemBackground).opacity(0.65)
     var content: () -> CardContent
-    var onFrameChange: (CGRect) -> () = { _ in }
     var handleHeight: CGFloat = 20.0
 
-    /// Card should always appear as animating to it's initial position from below
+    /// After gesture state changes the card will have to tell
+    /// the map to restore it's previous state
+    var previousMapState: MapViewState?
+
+    /// Card should always first appear in transition from below
     @State internal var cardTop: CGFloat = UIScreen.main.bounds.height
 
     @GestureState var dragState = FWDragState.inactive
@@ -50,17 +58,17 @@ struct FWCardView<CardContent: View>: View {
                                     .updating($dragState) { drag, state, transaction in
                                         state = .dragging(translation: drag.translation)
 
+                                        /// Tell mapview.camera to stop animating
+                                        map.interruptState(withState: .gesturing)
+
                                         let top = cardTop + drag.translation.height
                                         let frame = proxy.frame(in: .global)
-                                        onFrameChange(CGRect(
-                                                x: frame.origin.x,
-                                                y: frame.origin.y,
-                                                width: frame.width,
-                                                height: frame.height - (frame.height - top)
-                                        ))
-                                    }.onEnded { value in
-                                onDragEnded(drag: value)
-                            }
+                                        print(frame.height - top)
+                                        cardHeight = frame.height - top
+                                    }
+                                    .onEnded { value in
+                                        onDragEnded(drag: value)
+                                    }
                     )
                     .onAppear {
                         setCardTopForState(proxy, cardState)
@@ -120,7 +128,6 @@ struct FWCardView<CardContent: View>: View {
             case .collapsed:
                 setCardTop(proxy: proxy, y: proxy.size.height - handleHeight)
             case .partial:
-                print("Detent height: \(detentHeight), Header height: \(headerHeight)")
                 setCardTop(proxy: proxy, y: proxy.frame(in: .local).origin.y + proxy.size.height - handleHeight - detentHeight - headerHeight)
             case .full:
                 setCardTop(proxy: proxy, y: proxy.frame(in: .local).origin.y)
@@ -131,12 +138,8 @@ struct FWCardView<CardContent: View>: View {
         withAnimation(.spring(response: 0.3)) {
             cardTop = y
             let frame = proxy.frame(in: .global)
-            onFrameChange(CGRect(
-                    x: frame.origin.x,
-                    y: frame.origin.y,
-                    width: frame.width,
-                    height: frame.height - (frame.height - cardTop)
-            ))
+            cardHeight = frame.height - cardTop
+            print("executed once only: \(frame.height - cardTop)")
         }
     }
 }
@@ -148,7 +151,8 @@ struct TopSafeArea_Preview2: PreviewProvider {
             Color.gray.opacity(0.3).edgesIgnoringSafeArea(.all)
             FWCardView(cardState: .constant(.full),
                     detentHeight: .constant(200),
-                    headerHeight: .constant(44))
+                    headerHeight: .constant(44),
+                    cardHeight: .constant(100))
             {
                 NavigationLink(destination: Color.green) {
                     ZStack {
@@ -162,7 +166,8 @@ struct TopSafeArea_Preview2: PreviewProvider {
                         }
                     }
                 }
-            }.edgesIgnoringSafeArea(.bottom)
+            }
+                    .edgesIgnoringSafeArea(.bottom)
 
         }
     }
