@@ -13,17 +13,19 @@ struct FWCardView<CardContent: View>: View {
     @Binding var cardState: FWCardState
     @Binding var detentHeight: CGFloat
     @Binding var headerHeight: CGFloat
-    @Binding var cardHeight: CGFloat
+    @Binding internal var cardTop: CGFloat
     var bgColor: Color = Color(UIColor.systemBackground).opacity(0.65)
     var content: () -> CardContent
     var handleHeight: CGFloat = 20.0
+
 
     /// After gesture state changes the card will have to tell
     /// the map to restore it's previous state
     var previousMapState: MapViewState?
 
+    @State var previousCardTop: CGFloat?
+
     /// Card should always first appear in transition from below
-    @State internal var cardTop: CGFloat = UIScreen.main.bounds.height
 
     @GestureState var dragState = FWDragState.inactive
 
@@ -51,22 +53,33 @@ struct FWCardView<CardContent: View>: View {
                             .edgesIgnoringSafeArea(.bottom)
                 }
             }
-                    .position(position(proxy, forDragTranslation: dragState.translation))
+                    .position(position(proxy))
                     .gesture(
                         /// Unable to factor out due to dependency on proxy
                             DragGesture()
                                     .updating($dragState) { drag, state, transaction in
-                                        state = .dragging(translation: drag.translation)
-
-                                        /// Tell mapview.camera to stop animating
-                                        map.interruptState(withState: .gesturing)
-
-                                        let top = cardTop + drag.translation.height
-                                        let frame = proxy.frame(in: .global)
-                                        print(frame.height - top)
-                                        cardHeight = frame.height - top
+//                                        if previousCardTop == nil {
+                                            state = .dragging(translation: drag.translation)
+                                            DispatchQueue.main.async {
+                                                print("dragging: \(drag.translation.height)")
+                                                cardTop = 400 + drag.translation.height
+                                            }
+////                                            DispatchQueue.main.async {
+//                                                previousCardTop = cardTop
+////                                            }
+//                                        }
+//
+//                                        /// Tell mapview.camera to stop animating
+////                                        map.interruptState(withState: .gesturing)
+//                                        if let oldCardTop = previousCardTop {
+////                                            DispatchQueue.main.async {
+//                                                cardTop = max(oldCardTop + drag.translation.height, headerHeight)
+//                                                print("dragging, card top: \(cardTop)")
+////                                            }
+//                                        }
                                     }
                                     .onEnded { value in
+                                        previousCardTop = nil
                                         onDragEnded(drag: value)
                                     }
                     )
@@ -110,16 +123,9 @@ struct FWCardView<CardContent: View>: View {
     }
 
     internal func position (_ proxy: GeometryProxy) -> CGPoint {
-        CGPoint(
+        return CGPoint(
                 x: proxy.size.width / 2,
                 y: cardTop + proxy.size.height / 2
-        )
-    }
-
-    internal func position (_ proxy: GeometryProxy, forDragTranslation translation: CGSize) -> CGPoint {
-        CGPoint(
-                x: proxy.size.width / 2,
-                y: max(cardTop + proxy.size.height / 2 + translation.height, cardTop + proxy.size.height / 2)
         )
     }
 
@@ -135,40 +141,9 @@ struct FWCardView<CardContent: View>: View {
     }
 
     internal func setCardTop (proxy: GeometryProxy, y: CGFloat) {
+        print("setting card top: \(y)")
         withAnimation(.spring(response: 0.3)) {
             cardTop = y
-            let frame = proxy.frame(in: .global)
-            cardHeight = frame.height - cardTop
-            print("executed once only: \(frame.height - cardTop)")
-        }
-    }
-}
-
-struct TopSafeArea_Preview2: PreviewProvider {
-
-    static var previews: some View {
-        ZStack {
-            Color.gray.opacity(0.3).edgesIgnoringSafeArea(.all)
-            FWCardView(cardState: .constant(.full),
-                    detentHeight: .constant(200),
-                    headerHeight: .constant(44),
-                    cardHeight: .constant(100))
-            {
-                NavigationLink(destination: Color.green) {
-                    ZStack {
-                        Color.yellow
-                        VStack {
-                            HStack {
-                                Text("Content")
-                                Spacer()
-                            }
-                            Spacer()
-                        }
-                    }
-                }
-            }
-                    .edgesIgnoringSafeArea(.bottom)
-
         }
     }
 }

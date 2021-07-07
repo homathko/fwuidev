@@ -8,14 +8,13 @@ import MapboxMaps
 
 struct FWMapView: View {
     @ObservedObject var map: MapController
-    var cardHeightChanged: (CGFloat) -> ()
     var annotations: [FWMapSprite]
-
-    @State var visibleSprites = [FWMapSprite]()
+    @Binding var cardTop: CGFloat
+    @State private var visibleSprites = [FWMapSprite]()
 
     var body: some View {
         ZStack {
-            MapboxViewRepresentable(controller: map) { updated in
+            MapboxViewRepresentable(controller: map, cardTop: $cardTop) { updated in
                 self.visibleSprites = []
                 self.visibleSprites = updated
             }

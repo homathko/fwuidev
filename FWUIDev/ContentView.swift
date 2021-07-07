@@ -65,6 +65,8 @@ struct ContentView: View {
     @State private var selectedTab: Int = 0
     @State private var detentHeight: CGFloat = 200
     @State private var headerHeight: CGFloat = 0
+    @State var cardTop: CGFloat = UIScreen.main.bounds.height
+    @State var mapInsetBottomPadding: CGFloat = UIScreen.main.bounds.height
     @State var cardHeight: CGFloat = UIScreen.main.bounds.height
 
     var body: some View {
@@ -84,12 +86,13 @@ struct ContentView: View {
         /// Begin TabView
         TabView(selection: selection) {
             ZStack {
-                FWMapView(map: map, cardHeightChanged: { _ in }, annotations: assets)
+                FWMapView(map: map, annotations: assets, cardTop: $cardTop)
                 FWCardView(
                         cardState: $cardState,
                         detentHeight: $detentHeight,
                         headerHeight: $headerHeight,
-                        cardHeight: $cardHeight) {
+                        cardTop: $cardTop)
+                {
 
                         YellowView()
                                 .navigationBarTitle("Fucking SwiftUI", displayMode: .inline)
@@ -111,6 +114,10 @@ struct ContentView: View {
 
                 SafeAreaInsetsView()
             }
+//                .onBody(for: cardTop) { cardTop in
+//                    mapInsetBottomPadding = UIScreen.main.bounds.height - cardTop
+//                    print("card top set: \(cardTop)")
+//                }
                     .environmentObject(map)
                     .tabItem {
                         Image(systemName: "hand.draw.fill")
@@ -174,6 +181,17 @@ struct RedView: View {
             }
                     .mapConstraint(.pan([assets[2]], true))
         }
+    }
+}
+
+struct MyOtherCircle: View {
+    @Binding var offset: CGFloat
+
+    var body: some View {
+        Circle()
+                .fill(Color.blue)
+                .frame(width: 50, height: 50)
+                .position(x: 100, y: 100 + offset/2)
     }
 }
 

@@ -29,13 +29,8 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
         }
     }
 
-    var cardHeight: CGFloat = .zero {
-        willSet {
-            if newValue != cardHeight {
-                syncMapState()
-            }
-        }
-    }
+    /// Use coordinator to hold previous value and guard
+    var bottomPadding: CGFloat = .zero
 
     var mapMoved: ([FWMapSprite]) -> () = { _ in }
 
@@ -111,7 +106,7 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
     }
 
     /// Modify mapView according to MapViewState
-    private func syncMapState () {
+    func syncMapState (_ bottomPadding: CGFloat = 0) {
         guard let mapView = mapView,
               initialMapLoadComplete else {
             return
@@ -120,9 +115,13 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
         /// Update gesture availability according to updated constraints
         enableGestures(forState: state)
 
-        let insets = UIEdgeInsets(top: 0, left: 0, bottom: cardHeight, right: 0)
-        let newCamera = camera(forState: state, padding: insets)
-        mapView.camera.ease(to: newCamera, duration: state == .gesturing ? 0 : 1.0)
+        print("################### MapInsetRect UPDATE :: \(bottomPadding)")
+
+        let insets = UIEdgeInsets(top: 0, left: 0, bottom: bottomPadding, right: 0)
+        let newCamera = camera(forState: state, padding: insets.maximumHeight(500))
+//        print("syncMapState: \(cardHeight)")
+//        mapView.camera.ease(to: newCamera, duration: state == .gesturing ? 0 : 1.0)
+        mapView.camera.ease(to: newCamera, duration: 0)
     }
 
     func syncSwiftUI () {

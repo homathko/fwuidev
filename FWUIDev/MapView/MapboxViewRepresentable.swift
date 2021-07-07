@@ -22,6 +22,8 @@ struct MapboxViewRepresentable: UIViewRepresentable {
 
     @ObservedObject var controller: MapController
 
+    @Binding var cardTop: CGFloat
+
     /// Update parent view when camera changes, etc
     var mapMoved: ([FWMapSprite]) -> () = { _ in }
 
@@ -78,7 +80,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
             // Add terrain
             var demSource = RasterDemSource()
             demSource.url = "mapbox://mapbox.mapbox-terrain-dem-v1"
-            demSource.tileSize = 514
+            demSource.tileSize = 512
             demSource.maxzoom = 14.0
 
             do {
@@ -137,6 +139,12 @@ struct MapboxViewRepresentable: UIViewRepresentable {
 
         context.coordinator.state = controller.state
 
-        context.coordinator.cardHeight = controller.cardHeight
+        let bottomPadding = UIScreen.main.bounds.height - cardTop
+        print("################### updateUIView w. bottomPadding :: \(cardTop)")
+
+        if bottomPadding != context.coordinator.bottomPadding {
+            context.coordinator.bottomPadding = bottomPadding
+            context.coordinator.syncMapState(bottomPadding)
+        }
     }
 }
