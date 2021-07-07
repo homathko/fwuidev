@@ -23,8 +23,6 @@ struct FWCardView<CardContent: View>: View {
     /// the map to restore it's previous state
     var previousMapState: MapViewState?
 
-    @State var previousCardTop: CGFloat?
-
     /// Card should always first appear in transition from below
 
     @GestureState var dragState = FWDragState.inactive
@@ -58,28 +56,16 @@ struct FWCardView<CardContent: View>: View {
                         /// Unable to factor out due to dependency on proxy
                             DragGesture()
                                     .updating($dragState) { drag, state, transaction in
-//                                        if previousCardTop == nil {
+                                            print(transaction.isContinuous)
                                             state = .dragging(translation: drag.translation)
-                                            DispatchQueue.main.async {
-                                                print("dragging: \(drag.translation.height)")
-                                                cardTop = 400 + drag.translation.height
-                                            }
-////                                            DispatchQueue.main.async {
-//                                                previousCardTop = cardTop
-////                                            }
-//                                        }
+
+                                            print("dragging: \(drag.translation.height)")
+                                            cardTop = drag.startLocation.y + drag.translation.height
 //
 //                                        /// Tell mapview.camera to stop animating
 ////                                        map.interruptState(withState: .gesturing)
-//                                        if let oldCardTop = previousCardTop {
-////                                            DispatchQueue.main.async {
-//                                                cardTop = max(oldCardTop + drag.translation.height, headerHeight)
-//                                                print("dragging, card top: \(cardTop)")
-////                                            }
-//                                        }
                                     }
                                     .onEnded { value in
-                                        previousCardTop = nil
                                         onDragEnded(drag: value)
                                     }
                     )
