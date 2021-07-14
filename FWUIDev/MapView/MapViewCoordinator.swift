@@ -116,8 +116,6 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
         /// Update gesture availability according to updated constraints
         enableGestures(forState: state)
 
-        print("################### MapInsetRect UPDATE :: \(bottomPadding)")
-
         let insets = UIEdgeInsets(top: 30, left: 30, bottom: bottomPadding + 30, right: 30)
         let newCamera = camera(forState: state, padding: insets.maximumHeight(500))
 //        print("syncMapState: \(cardHeight)")

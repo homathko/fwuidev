@@ -88,6 +88,7 @@ struct ContentView: View {
                 GeometryReader { proxy in
                     ZStack {
                         FWMapView(map: map, annotations: assets, cardTop: $cardTop, bottomInset: proxy.safeAreaInsets.bottom)
+//                        DragView()
                         FWCardView(
                                 cardState: $cardState,
                                 detentHeight: $detentHeight,

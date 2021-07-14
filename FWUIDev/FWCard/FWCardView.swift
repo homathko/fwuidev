@@ -26,6 +26,7 @@ struct FWCardView<CardContent: View>: View {
     /// Card should always first appear in transition from below
 
     @GestureState var dragState = FWDragState.inactive
+    @State var lastOffsetY: CGFloat = 0
 
     var body: some View {
         GeometryReader { proxy in
@@ -51,25 +52,18 @@ struct FWCardView<CardContent: View>: View {
                             .edgesIgnoringSafeArea(.bottom)
                 }
             }
-                    .position(position(proxy))
+                    .offset(y: cardTop)
                     .gesture(
-                        /// Unable to factor out due to dependency on proxy
                             DragGesture()
-                                    .updating($dragState) { drag, state, transaction in
-                                            print(transaction.isContinuous)
-                                            state = .dragging(translation: drag.translation)
-
-                                            print("dragging: \(drag.translation.height)")
-                                            cardTop = drag.startLocation.y + drag.translation.height
-//
-//                                        /// Tell mapview.camera to stop animating
-////                                        map.interruptState(withState: .gesturing)
+                                    .onChanged { gesture in
+                                        cardTop = lastOffsetY + gesture.translation.height
                                     }
-                                    .onEnded { value in
-                                        onDragEnded(drag: value)
+                                    .onEnded { drag in
+                                        onDragEnded(drag: drag)
                                     }
                     )
                     .onAppear {
+                        lastOffsetY = cardTop
                         setCardTopForState(proxy, cardState)
                     }
                     .onChange(of: cardState) { newState in
@@ -108,13 +102,6 @@ struct FWCardView<CardContent: View>: View {
         }
     }
 
-    internal func position (_ proxy: GeometryProxy) -> CGPoint {
-        return CGPoint(
-                x: proxy.size.width / 2,
-                y: cardTop + proxy.size.height / 2
-        )
-    }
-
     private func setCardTopForState (_ proxy: GeometryProxy, _ state: FWCardState) {
         switch state {
             case .collapsed:
@@ -131,5 +118,6 @@ struct FWCardView<CardContent: View>: View {
         withAnimation(.spring(response: 0.3)) {
             cardTop = y
         }
+        lastOffsetY = cardTop
     }
 }
