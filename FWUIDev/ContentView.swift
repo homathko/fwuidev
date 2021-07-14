@@ -88,7 +88,6 @@ struct ContentView: View {
                 GeometryReader { proxy in
                     ZStack {
                         FWMapView(map: map, annotations: assets, cardTop: $cardTop, bottomInset: proxy.safeAreaInsets.bottom)
-//                        DragView()
                         FWCardView(
                                 cardState: $cardState,
                                 detentHeight: $detentHeight,
@@ -159,26 +158,18 @@ struct GreenView: View {
                 }
             }
                     /// Merge in another sprite
-                    .mapConstraint(.pan([assets[1]], false))
+                    .mapConstraint(.pan([assets[1]], false), merge: true)
         }
     }
 }
 
 struct RedView: View {
     var body: some View {
-        NavigationLink(destination:
-            Color.black
-//                .mapConstraints([
-////                    .pan([assets[2]], false),
-//                    .zoom(12, false)
-//                ] , merge: true)
-        ) {
-            ZStack {
-                Color.red.border(Color.black)
-                Text("Pin 3")
-            }
-                    .mapConstraint(.pan([assets[2]], true))
+        ZStack {
+            Color.red.border(Color.black)
+            Text("Pin 3")
         }
+                .mapConstraint(.pan([assets[2]], true))
     }
 }
 

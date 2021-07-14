@@ -75,7 +75,7 @@ extension MapboxViewCoordinator {
                         $0.location.coordinate
                     }
                 ])),
-                padding: padding.maximumHeight(500),
+                padding: padding,
                 bearing: state.constraints().heading?.headingValue(),
                 pitch: min(15, mapView.cameraState.pitch)
             )

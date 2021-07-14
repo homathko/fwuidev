@@ -117,8 +117,9 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
         enableGestures(forState: state)
 
         let insets = UIEdgeInsets(top: 30, left: 30, bottom: bottomPadding + 30, right: 30)
-        let newCamera = camera(forState: state, padding: insets.maximumHeight(500))
-//        print("syncMapState: \(cardHeight)")
+        /// Limit map zoom out
+        let maxHeight = UIScreen.main.bounds.height * 0.65
+        let newCamera = camera(forState: state, padding: insets.maximumHeight(maxHeight))
 //        mapView.camera.ease(to: newCamera, duration: state == .gesturing ? 0 : 1.0)
         mapView.camera.ease(to: newCamera, duration: 0)
     }

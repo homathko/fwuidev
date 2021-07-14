@@ -52,7 +52,7 @@ struct FWCardView<CardContent: View>: View {
                             .edgesIgnoringSafeArea(.bottom)
                 }
             }
-                    .offset(y: cardTop)
+                    .offset(y: max(0, cardTop))
                     .gesture(
                             DragGesture()
                                     .onChanged { gesture in

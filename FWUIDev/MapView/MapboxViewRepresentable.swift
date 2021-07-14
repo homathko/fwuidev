@@ -138,8 +138,6 @@ struct MapboxViewRepresentable: UIViewRepresentable {
         /// they need to be applied *after* `.mapLoaded`
         context.coordinator.annotations = annotations
 
-        context.coordinator.state = controller.state
-
         let bottomPadding = UIScreen.main.bounds.height - cardTop - bottomInset - 40 /// < -20 is handleHeight defined in FWCardView
         var syncFlag = false
         if bottomPadding != context.coordinator.bottomPadding {
