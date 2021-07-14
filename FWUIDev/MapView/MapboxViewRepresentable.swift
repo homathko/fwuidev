@@ -23,6 +23,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
     @ObservedObject var controller: MapController
 
     @Binding var cardTop: CGFloat
+    var bottomInset: CGFloat
 
     /// Update parent view when camera changes, etc
     var mapMoved: ([FWMapSprite]) -> () = { _ in }
@@ -133,13 +134,13 @@ struct MapboxViewRepresentable: UIViewRepresentable {
             mapView.mapboxMap.style.uri = styleURI
         }
 
-        /// The coordinator needs to manager annotations because
+        /// The coordinator needs to manage annotations because
         /// they need to be applied *after* `.mapLoaded`
         context.coordinator.annotations = annotations
 
         context.coordinator.state = controller.state
 
-        let bottomPadding = UIScreen.main.bounds.height - cardTop
+        let bottomPadding = UIScreen.main.bounds.height - cardTop - bottomInset - 40 /// < -20 is handleHeight defined in FWCardView
         var syncFlag = false
         if bottomPadding != context.coordinator.bottomPadding {
             context.coordinator.bottomPadding = bottomPadding

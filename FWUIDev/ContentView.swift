@@ -83,47 +83,44 @@ struct ContentView: View {
                     }
                 })
 
-        /// Begin TabView
-        TabView(selection: selection) {
-            ZStack {
-                FWMapView(map: map, annotations: assets, cardTop: $cardTop)
-                FWCardView(
-                        cardState: $cardState,
-                        detentHeight: $detentHeight,
-                        headerHeight: $headerHeight,
-                        cardTop: $cardTop)
-                {
+            /// Begin TabView
+            TabView(selection: selection) {
+                GeometryReader { proxy in
+                    ZStack {
+                        FWMapView(map: map, annotations: assets, cardTop: $cardTop, bottomInset: proxy.safeAreaInsets.bottom)
+                        FWCardView(
+                                cardState: $cardState,
+                                detentHeight: $detentHeight,
+                                headerHeight: $headerHeight,
+                                cardTop: $cardTop) {
 
-                        YellowView()
-                                .navigationBarTitle("Fucking SwiftUI", displayMode: .inline)
-                                .navigationBarItems(
-                                        leading: Button("Collapse") {
-                                            cardState = .collapsed
-                                        },
-                                        trailing: HStack {
-                                            Button("Partial") {
-                                                cardState = .partial
+                            YellowView()
+                                    .navigationBarTitle("Fucking SwiftUI", displayMode: .inline)
+                                    .navigationBarItems(
+                                            leading: Button("Collapse") {
+                                                cardState = .collapsed
+                                            },
+                                            trailing: HStack {
+                                                Button("Partial") {
+                                                    cardState = .partial
+                                                }
+                                                Button("Full") {
+                                                    cardState = .full
+                                                }
                                             }
-                                            Button("Full") {
-                                                cardState = .full
-                                            }
-                                        }
-                                )
+                                    )
 
-                }
+                        }
 
-                SafeAreaInsetsView()
+                        SafeAreaInsetsView()
+                    }
             }
-//                .onBody(for: cardTop) { cardTop in
-//                    mapInsetBottomPadding = UIScreen.main.bounds.height - cardTop
-//                    print("card top set: \(cardTop)")
-//                }
                     .environmentObject(map)
                     .tabItem {
                         Image(systemName: "hand.draw.fill")
                         Text("Finger Slap")
                     }.tag(0)
-            }
+        }
     }
 }
 
