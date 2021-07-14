@@ -10,14 +10,7 @@ import Turf
 /// Here's our custom `Coordinator` implementation.
 internal class MapboxViewCoordinator: GestureManagerDelegate {
 
-    var state = MapViewState.base {
-        willSet {
-            if newValue != state {
-                syncMapState()
-            }
-        }
-    }
-
+    var state = MapViewState.base
 
     /// It also has a setter for annotations. When the annotations
     /// are set, it synchronizes them to the map
@@ -30,6 +23,7 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
     }
 
     /// Use coordinator to hold previous value and guard
+    var centerCoordinate: CLLocationCoordinate2D = .init()
     var bottomPadding: CGFloat = .zero
 
     var mapMoved: ([FWMapSprite]) -> () = { _ in }
@@ -56,23 +50,30 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
 
     func notify (for event: MapboxMaps.Event) {
         guard let typedEvent = MapEvents.EventKind(rawValue: event.type),
-              mapView != nil else {
+              let mapView = mapView else {
             return
         }
+
         switch typedEvent {
             /// As the camera changes, we update the binding. SwiftUI
             /// will propagate this change to any other UI elements connected
             /// to the same binding.
             case .cameraChanged:
+                parent?.controller.camera = MapCameraState(
+                        center: mapView.cameraState.center,
+                        heading: mapView.cameraState.bearing,
+                        zoom: mapView.cameraState.zoom,
+                        pitch: mapView.cameraState.pitch
+                )
                 syncSwiftUI()
 
             /// When the map reloads, we need to re-sync the annotations
             case .mapLoaded:
                 initialMapLoadComplete = true
-                mapView?.gestures.delegate = self
+                mapView.gestures.delegate = self
                 /// Immediately limit pitch angle due to 2D annotations
                 let boundsOptions = CameraBoundsOptions(maxPitch: 24)
-                try! mapView?.mapboxMap.setCameraBounds(for: boundsOptions)
+                try! mapView.mapboxMap.setCameraBounds(for: boundsOptions)
                 syncAnnotations()
                 syncMapState()
 
@@ -106,7 +107,7 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
     }
 
     /// Modify mapView according to MapViewState
-    func syncMapState (_ bottomPadding: CGFloat = 0) {
+    func syncMapState () {
         guard let mapView = mapView,
               initialMapLoadComplete else {
             return
@@ -117,7 +118,7 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
 
         print("################### MapInsetRect UPDATE :: \(bottomPadding)")
 
-        let insets = UIEdgeInsets(top: 0, left: 0, bottom: bottomPadding, right: 0)
+        let insets = UIEdgeInsets(top: 40, left: 30, bottom: bottomPadding + 20, right: 30)
         let newCamera = camera(forState: state, padding: insets.maximumHeight(500))
 //        print("syncMapState: \(cardHeight)")
 //        mapView.camera.ease(to: newCamera, duration: state == .gesturing ? 0 : 1.0)
@@ -138,11 +139,6 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
                 }
 
                 DispatchQueue.main.async { [weak self] in
-                    self?.parent?.controller.camera = MapCameraState(
-                            heading: mapView.cameraState.bearing,
-                            zoom: mapView.cameraState.zoom,
-                            pitch: mapView.cameraState.pitch
-                    )
                     self?.mapMoved(updated ?? [])
                 }
             }

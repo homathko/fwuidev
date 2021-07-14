@@ -20,6 +20,10 @@ enum MapViewState:  Equatable {
         switch (lhs, rhs) {
             case (.constrained(let lha), .constrained(let rha)):
                 return lha == rha
+            case (.base, .base),
+                 (.gesturing, .gesturing),
+                 (.animating, .animating):
+                return true
             default: return false
         }
     }
@@ -38,6 +42,7 @@ enum MapViewState:  Equatable {
 }
 
 struct MapCameraState {
+    var center: CLLocationCoordinate2D
     var heading: Double
     var zoom: CGFloat
     var pitch: CGFloat
@@ -50,8 +55,7 @@ class MapController: ObservableObject {
     /// by card view)
     private var previousState: MapViewState?
 
-    @Published var camera = MapCameraState(heading: 0, zoom: 0, pitch: 0)
-    @Published var cardHeight: CGFloat = .zero
+    var camera = MapCameraState(center: .squamish, heading: 0, zoom: 0, pitch: 0)
 
     /// All annotations that are in .showing prop that are
     /// supposed to be kept in frame at one time

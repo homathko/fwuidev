@@ -106,7 +106,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
 //            mapView.location.options.puckType = .puck2D()
         }
 
-        updateUIView(mapView, context: context)
+//        updateUIView(mapView, context: context)
 
         /// Additionally, this is your opportunity to connect the coordinator to the map view. In this example
         /// the coordinator is given a reference to the map view. It uses the reference to set up the necessary
@@ -140,11 +140,17 @@ struct MapboxViewRepresentable: UIViewRepresentable {
         context.coordinator.state = controller.state
 
         let bottomPadding = UIScreen.main.bounds.height - cardTop
-        print("################### updateUIView w. bottomPadding :: \(cardTop)")
-
+        var syncFlag = false
         if bottomPadding != context.coordinator.bottomPadding {
             context.coordinator.bottomPadding = bottomPadding
-            context.coordinator.syncMapState(bottomPadding)
+            syncFlag = true
         }
+
+        if context.coordinator.state != controller.state {
+            context.coordinator.state = controller.state
+            syncFlag = true
+        }
+
+        if syncFlag { context.coordinator.syncMapState() }
     }
 }
