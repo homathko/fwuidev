@@ -39,19 +39,22 @@ struct MapViewConstraintModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
                 .onAppear {
-                    if !merge {
-                        map.reset()
-                    }
-                    /// If navigating "back" to this view,
-                    /// the constraints are already here
-                    if let index = map.constraintsQueue.firstIndex(of: group) {
-                        /// And we want them to be the last element
-                        map.popAfter(index: index)
-                    } else {
-                        /// We are navigating forward and want to add
-                        /// this new constraint group
-                        map.push(group: group)
-                    }
+                    print(group.pan?.annotations().first?.title ?? "n/a")
+                    map.push(group: group)
+//                    map.push(group: group)
+//                    if !merge {
+//                        map.reset()
+//                    }
+//                    /// If navigating "back" to this view,
+//                    /// the constraints are already here
+//                    if let index = map.constraintsQueue.firstIndex(of: group) {
+//                        /// And we want them to be the last element
+//                        map.popAfter(index: index)
+//                    } else {
+//                        /// We are navigating forward and want to add
+//                        /// this new constraint group
+//                        map.push(group: group)
+//                    }
                 }
     }
 }

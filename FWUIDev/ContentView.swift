@@ -94,28 +94,12 @@ struct ContentView: View {
                                 headerHeight: $headerHeight,
                                 cardTop: $cardTop) {
 
-                            YellowView()
+                            YellowView(map: map)
                                     .navigationBarTitle("Fucking SwiftUI", displayMode: .inline)
-                                    .navigationBarItems(
-                                            leading: Button("Collapse") {
-                                                cardState = .collapsed
-                                            },
-                                            trailing: HStack {
-                                                Button("Partial") {
-                                                    cardState = .partial
-                                                }
-                                                Button("Full") {
-                                                    cardState = .full
-                                                }
-                                            }
-                                    )
-
                         }
-
-                        SafeAreaInsetsView()
+                            .environmentObject(map)
                     }
             }
-                    .environmentObject(map)
                     .tabItem {
                         Image(systemName: "hand.draw.fill")
                         Text("Finger Slap")
@@ -125,67 +109,53 @@ struct ContentView: View {
 }
 
 struct YellowView: View {
+    var map: MapController
     var body: some View {
-        NavigationLink(destination: GreenView()) {
-            ZStack {
-                Color.yellow
+        VStack {
+            NavigationLink(destination: GreenView(map: map)) {
                 Text("Pin 1")
-                VStack {
-                    Color.clear.border(Color.green)
-                            .frame(height: 200)
-                    Spacer()
-                }
+                        .onAppear {
+                            let group = MapViewConstraintGroup(MapViewConstraint.pan([assets[0]], false))
+                            print(group.pan?.annotations().first?.title ?? "n/a")
+                            map.reset()
+                            map.push(group: group)
+                        }
             }
-                    /// Reset map view state
-                    .mapConstraints([
-                        .pan([assets[0]], true)
-//                        .zoom(9, true)
-                    ], merge: false)
+            Spacer()
         }
+                .background(Color.yellow)
     }
 }
 
 struct GreenView: View {
+    var map: MapController
+
     var body: some View {
-        NavigationLink(destination: RedView()) {
-            ZStack {
-                Color.green
+        VStack {
+            NavigationLink(destination: RedView(map: map)) {
                 Text("Pin 2")
-                VStack {
-                    Color.clear.border(Color.black)
-                            .frame(height: 100)
-                    Spacer()
-                }
+                        .onAppear {
+                            let group = MapViewConstraintGroup(MapViewConstraint.pan([assets[1]], false))
+                            print(group.pan?.annotations().first?.title ?? "n/a")
+                            map.reset()
+                            map.push(group: group)
+                        }
             }
-                    /// Merge in another sprite
-                    .mapConstraint(.pan([assets[1]], false), merge: false)
+            Spacer()
         }
+                .background(Color.green)
     }
 }
 
 struct RedView: View {
+    var map: MapController
     var body: some View {
-        ZStack {
-            Color.red.border(Color.black)
-            Text("Pin 3")
-        }
-                .mapConstraint(.pan([assets[2]], true), merge: false)
-    }
-}
-
-struct MyOtherCircle: View {
-    @Binding var offset: CGFloat
-
-    var body: some View {
-        Circle()
-                .fill(Color.blue)
-                .frame(width: 50, height: 50)
-                .position(x: 100, y: 100 + offset/2)
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
+        Color.red
+                .onAppear {
+                    let group = MapViewConstraintGroup(MapViewConstraint.pan([assets[2]], false))
+                    print(group.pan?.annotations().first?.title ?? "n/a")
+                    map.reset()
+                    map.push(group: group)
+                }
     }
 }

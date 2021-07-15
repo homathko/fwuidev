@@ -58,7 +58,7 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
             /// As the camera changes, we update the binding. SwiftUI
             /// will propagate this change to any other UI elements connected
             /// to the same binding.
-            case .cameraChanged:
+            case .cameraChanged: ()
                 parent?.controller.camera = MapCameraState(
                         center: mapView.cameraState.center,
                         heading: mapView.cameraState.bearing,
@@ -126,11 +126,12 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
 
     func syncSwiftUI () {
         if let mapView = mapView {
+            let frame = mapView.frame /// mapView can only be accessed from main thread
             DispatchQueue.global(qos: .userInteractive).async { [weak self] in
                 let updated = self?.annotations.compactMap { sprite -> FWMapSprite? in
                     var result = sprite
                     result.point = mapView.mapboxMap.point(for: sprite.location.coordinate)
-                    if mapView.frame.contains(result.point!) {
+                    if frame.contains(result.point!) {
                         return result
                     } else {
                         return nil

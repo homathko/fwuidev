@@ -78,7 +78,7 @@ class MapController: ObservableObject {
     /// Remove all constraints
     func reset () {
         constraintsQueue = []
-        state = .base
+//        state = .base
     }
     /// Add new constraints to the FILO queue
     func push (constraints: [MapViewConstraint]) {
@@ -92,8 +92,10 @@ class MapController: ObservableObject {
         state = .constrained(constraintsQueue)
     }
     func push (group: MapViewConstraintGroup) {
-        constraintsQueue.append(group)
-        state = .constrained(constraintsQueue)
+        if !constraintsQueue.contains(group) {
+            constraintsQueue.append(group)
+            state = .constrained(constraintsQueue)
+        }
     }
     func pop () {
         constraintsQueue.removeLast()

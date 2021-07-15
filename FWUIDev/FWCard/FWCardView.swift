@@ -98,7 +98,6 @@ struct FWCardView<CardContent: View>: View {
     }
 
     internal func setCardTop (proxy: GeometryProxy, y: CGFloat) {
-        print("setting card top: \(y)")
         withAnimation(.spring(response: 0.3)) {
             cardTop = y
         }
