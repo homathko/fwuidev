@@ -58,7 +58,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
             resourceOptions: ResourceOptionsManager(
                     accessToken: "pk.eyJ1IjoiaHRlayIsImEiOiJja2gyZDB4Z3IwYW90MnNucHZ6aTN2N2g5In0.qOxZe7m1td1XTWkyIZCW-A"
             ).resourceOptions,
-            cameraOptions: CameraOptions(center: .squamish, zoom: 9)
+            cameraOptions: CameraOptions(center: .squamish, zoom: 4)
     )
 
     /// The first time SwiftUI needs to render this view, it starts by invoking `makeCoordinator()`.

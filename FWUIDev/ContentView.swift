@@ -12,6 +12,7 @@ import UIKit
 struct AssetModel: Identifiable, Locatable, FWMapScreenDrawable {
     var id = UUID().uuidString
     var location: CLLocation
+    var heading: Int = 0
 
     var spriteType: FWMapSpriteType = .asset
     var point: CGPoint?
@@ -22,26 +23,26 @@ struct AssetModel: Identifiable, Locatable, FWMapScreenDrawable {
 
     var shouldDisplayAltitude: Bool { true }
     var shouldDisplaySpeed: Bool { true }
-    var rotationModifier: RotationModifier { .alwaysUp }
+    var rotationModifier: RotationModifier { .heading(heading) }
     var anchorPoint: UnitPoint { .center }
 }
 
 /// Seed data (will come from "AnnotationPublisher" conformer)
-var assets: [FWMapSprite] = [
+var sprites: [FWMapSprite] = [
     FWMapSprite(
             model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.716700, longitude: -123.142448)),
-            spriteType: .asset,
-            name: "Pin 1"
+            spriteType: .user,
+            name: "User"
     ),
     FWMapSprite(
             model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.316054, longitude: -122.805009)),
             spriteType: .asset,
-            name: "Pin 2"
+            name: "Asset 1"
     ),
     FWMapSprite(
             model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.498542, longitude: -123.921399)),
             spriteType: .asset,
-            name: "Pin 3"
+            name: "Asset 2"
     )
 ]
 
@@ -87,7 +88,7 @@ struct ContentView: View {
             TabView(selection: selection) {
                 GeometryReader { proxy in
                     ZStack {
-                        FWMapView(map: map, annotations: assets, cardTop: $cardTop, bottomInset: proxy.safeAreaInsets.bottom)
+                        FWMapView(map: map, annotations: sprites, cardTop: $cardTop, bottomInset: proxy.safeAreaInsets.bottom)
                         FWCardView(
                                 cardState: $cardState,
                                 detentHeight: $detentHeight,
@@ -111,19 +112,13 @@ struct ContentView: View {
 struct YellowView: View {
     var map: MapController
     var body: some View {
-        VStack {
-            NavigationLink(destination: GreenView(map: map)) {
+        NavigationLink(destination: GreenView(map: map)) {
+            ZStack {
+                Color.yellow
                 Text("Pin 1")
-                        .onAppear {
-                            let group = MapViewConstraintGroup(MapViewConstraint.pan([assets[0]], false))
-                            print(group.pan?.annotations().first?.title ?? "n/a")
-                            map.reset()
-                            map.push(group: group)
-                        }
             }
-            Spacer()
         }
-                .background(Color.yellow)
+                .mapConstraint(map: map, .pan([sprites[0]], false), merge: true)
     }
 }
 
@@ -131,19 +126,13 @@ struct GreenView: View {
     var map: MapController
 
     var body: some View {
-        VStack {
-            NavigationLink(destination: RedView(map: map)) {
+        NavigationLink(destination: RedView(map: map)) {
+            ZStack {
+                Color.green
                 Text("Pin 2")
-                        .onAppear {
-                            let group = MapViewConstraintGroup(MapViewConstraint.pan([assets[1]], false))
-                            print(group.pan?.annotations().first?.title ?? "n/a")
-                            map.reset()
-                            map.push(group: group)
-                        }
+                        .mapConstraint(map: map, .pan([sprites[1]], true), merge: true)
             }
-            Spacer()
         }
-                .background(Color.green)
     }
 }
 
@@ -151,11 +140,6 @@ struct RedView: View {
     var map: MapController
     var body: some View {
         Color.red
-                .onAppear {
-                    let group = MapViewConstraintGroup(MapViewConstraint.pan([assets[2]], false))
-                    print(group.pan?.annotations().first?.title ?? "n/a")
-                    map.reset()
-                    map.push(group: group)
-                }
+                .mapConstraint(map: map, .pan([sprites[2]], true), merge: true)
     }
 }

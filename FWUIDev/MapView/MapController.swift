@@ -55,7 +55,7 @@ class MapController: ObservableObject {
     /// by card view)
     private var previousState: MapViewState?
 
-    var camera = MapCameraState(center: .squamish, heading: 0, zoom: 0, pitch: 0)
+    @Published var camera = MapCameraState(center: .squamish, heading: 0, zoom: 0, pitch: 0)
 
     /// All annotations that are in .showing prop that are
     /// supposed to be kept in frame at one time
