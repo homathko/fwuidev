@@ -138,8 +138,8 @@ struct YellowView: View {
             }
                     /// Reset map view state
                     .mapConstraints([
-                        .pan([assets[0]], true),
-                        .zoom(9, true)
+                        .pan([assets[0]], true)
+//                        .zoom(9, true)
                     ], merge: false)
         }
     }
@@ -158,7 +158,7 @@ struct GreenView: View {
                 }
             }
                     /// Merge in another sprite
-                    .mapConstraint(.pan([assets[1]], false), merge: true)
+                    .mapConstraint(.pan([assets[1]], false), merge: false)
         }
     }
 }
@@ -169,7 +169,7 @@ struct RedView: View {
             Color.red.border(Color.black)
             Text("Pin 3")
         }
-                .mapConstraint(.pan([assets[2]], true))
+                .mapConstraint(.pan([assets[2]], true), merge: false)
     }
 }
 

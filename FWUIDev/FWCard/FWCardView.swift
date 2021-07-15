@@ -39,15 +39,15 @@ struct FWCardView<CardContent: View>: View {
                             .contentShape(Rectangle())
                 }
                         /// Drag handle has a background color if card state is full screen
-                        .modifier(FullConditionalWrappedLayout(cardState: cardState, bgColor: bgColor))
+                        .modifier(DragHandleConditionalWrappedLayout(cardState: cardState, bgColor: bgColor))
 
                 FWNavigationView(cardState: $cardState, headerHeight: $headerHeight) {
                     VStack(spacing: 0) { /// <--- spacing:0 stays!
-                        if cardState == .full {
-                            fullWrappedLayout
-                        } else {
-                            partialWrappedLayout(proxy)
-                        }
+
+                        content()
+                                .background(bgColor)
+
+
                     }
                             .edgesIgnoringSafeArea(.bottom)
                 }
@@ -72,14 +72,7 @@ struct FWCardView<CardContent: View>: View {
         }
     }
 
-    var fullWrappedLayout: some View {
-        VStack(spacing: 0) {
-            content()
-                    .background(bgColor)
-        }
-    }
-
-    struct FullConditionalWrappedLayout: ViewModifier {
+    struct DragHandleConditionalWrappedLayout: ViewModifier {
         var cardState: FWCardState
         var bgColor: Color
 
@@ -90,15 +83,6 @@ struct FWCardView<CardContent: View>: View {
             } else {
                 content
             }
-        }
-    }
-
-    func partialWrappedLayout (_ proxy: GeometryProxy) -> some View {
-        VStack(spacing: 0) {
-            content()
-                    .background(bgColor)
-                    .cornerRadius(10.0, corners: [.topLeft, .topRight])
-                    .padding(.leading, 4).padding(.trailing, 4)
         }
     }
 
