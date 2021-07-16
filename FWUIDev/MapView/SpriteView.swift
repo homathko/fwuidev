@@ -7,7 +7,7 @@ import SwiftUI
 
 struct SpriteView: View {
     @EnvironmentObject var map: MapController
-    @State var sprite: FWMapSprite
+    var sprite: FWMapSprite
     @State var isSelected: Bool = false
 
     @State private var opacity = 0.6
@@ -26,9 +26,7 @@ struct SpriteView: View {
             map.selectedByTap = sprite
         }
         .onChange(of: map.selectedByTap) { selected in
-            if selected == sprite {
-                isSelected = true
-            }
+            isSelected = selected == sprite
         }
     }
 

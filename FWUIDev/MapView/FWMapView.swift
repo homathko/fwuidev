@@ -23,7 +23,9 @@ struct FWMapView: View {
                 .annotations(annotations)
 
             ForEach(visibleSprites, id: \.id) { sprite in
-                SpriteView(sprite: sprite).position(sprite.point!).environmentObject(map)
+                SpriteView(sprite: sprite)
+                        .position(sprite.point!)
+                        .environmentObject(map)
             }
         }
     }
