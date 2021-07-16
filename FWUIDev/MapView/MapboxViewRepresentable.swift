@@ -134,12 +134,15 @@ struct MapboxViewRepresentable: UIViewRepresentable {
             mapView.mapboxMap.style.uri = styleURI
         }
 
+        var syncFlag = false
         /// The coordinator needs to manage annotations because
         /// they need to be applied *after* `.mapLoaded`
-        context.coordinator.annotations = annotations
+        if context.coordinator.annotations != annotations {
+            context.coordinator.annotations = annotations
+            syncFlag = true
+        }
 
         let bottomPadding = UIScreen.main.bounds.height - cardTop - bottomInset - 40 /// < -20 is handleHeight defined in FWCardView
-        var syncFlag = false
         if bottomPadding != context.coordinator.bottomPadding {
             context.coordinator.bottomPadding = bottomPadding
             syncFlag = true

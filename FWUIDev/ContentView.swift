@@ -20,7 +20,7 @@ struct ContentView: View {
     @State var mapInsetBottomPadding: CGFloat = UIScreen.main.bounds.height
     @State var cardHeight: CGFloat = UIScreen.main.bounds.height
 
-    @ObservedObject var coordinator = AssetsCoordinator()
+    @StateObject var coordinator = AssetsCoordinator()
     @State var annotations: [FWMapSprite] = []
 
     var body: some View {
@@ -66,7 +66,7 @@ struct ContentView: View {
 }
 
 struct YellowView: View {
-    var coordinator: AssetsCoordinator
+    @ObservedObject var coordinator: AssetsCoordinator
     var map: MapController
     var body: some View {
         NavigationLink(destination: GreenView(coordinator: coordinator, map: map)) {
@@ -80,7 +80,7 @@ struct YellowView: View {
 }
 
 struct GreenView: View {
-    var coordinator: AssetsCoordinator
+    @ObservedObject var coordinator: AssetsCoordinator
     var map: MapController
 
     var body: some View {
@@ -95,7 +95,7 @@ struct GreenView: View {
 }
 
 struct RedView: View {
-    var coordinator: AssetsCoordinator
+    @ObservedObject var coordinator: AssetsCoordinator
     var map: MapController
     var body: some View {
         Color.red
