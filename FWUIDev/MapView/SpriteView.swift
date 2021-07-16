@@ -54,6 +54,13 @@ struct SpriteView: View {
                         self.scale = 2.5
                     }
                 }
+                .onDisappear {
+                    withAnimation {
+                        self.opacity = 0
+                        /// Avoid singular matrix, scale != 0
+                        self.scale = 0.001
+                    }
+                }
     }
 
     var repeatingAnimation: Animation {
