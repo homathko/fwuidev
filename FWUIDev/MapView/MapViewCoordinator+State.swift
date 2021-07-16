@@ -80,7 +80,7 @@ extension MapboxViewCoordinator {
                 pitch: min(15, mapView.cameraState.pitch)
             )
 
-            let maxZoom: CGFloat = 12.0
+            let maxZoom: CGFloat = 16.0
             let nextZoom = min(state.constraints().zoom?.zoomValue() ?? maxZoom, maxZoom)
             let boundsOptions = CameraBoundsOptions(maxZoom: nextZoom, maxPitch: 24)
             try! mapView.mapboxMap.setCameraBounds(for: boundsOptions)

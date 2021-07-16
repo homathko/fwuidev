@@ -75,7 +75,7 @@ struct YellowView: View {
                 Text("Pin 1")
             }
         }
-                .mapConstraint(map: map, .pan([coordinator.annotations[0]], false), merge: true)
+                .mapConstraint(map: map, .pan([coordinator.annotations[0]], true), merge: true)
     }
 }
 
