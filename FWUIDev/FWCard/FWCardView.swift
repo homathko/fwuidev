@@ -56,10 +56,12 @@ struct FWCardView<CardContent: View>: View {
                     .gesture(
                             DragGesture()
                                     .onChanged { gesture in
+                                        map.interruptState(withState: .gesturing)
                                         cardTop = lastOffsetY + gesture.translation.height
                                     }
                                     .onEnded { drag in
                                         onDragEnded(drag: drag)
+                                        map.endInterruption()
                                     }
                     )
                     .onAppear {
@@ -87,6 +89,7 @@ struct FWCardView<CardContent: View>: View {
     }
 
     private func setCardTopForState (_ proxy: GeometryProxy, _ state: FWCardState) {
+        map.interruptState(withState: .animating)
         switch state {
             case .collapsed:
                 setCardTop(proxy: proxy, y: proxy.size.height - handleHeight)
@@ -95,6 +98,7 @@ struct FWCardView<CardContent: View>: View {
             case .full:
                 setCardTop(proxy: proxy, y: proxy.frame(in: .local).origin.y)
         }
+        map.endInterruption()
     }
 
     internal func setCardTop (proxy: GeometryProxy, y: CGFloat) {

@@ -146,7 +146,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
         }
 
         if context.coordinator.state != controller.state {
-            print("MapViewState change -> \(controller.state)")
+//            print("MapViewState change -> \(controller.state)")
             context.coordinator.state = controller.state
             syncFlag = true
         }

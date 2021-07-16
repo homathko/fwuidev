@@ -25,7 +25,10 @@ struct FWMapView: View {
             ForEach(visibleSprites, id: \.id) { sprite in
                     SpriteView(sprite: sprite)
                             .position(sprite.point!)
-                            .animation(.linear(duration: 1.0))
+                            .animation(
+                                    map.state == .gesturing || map.state == .animating ?
+                                            .linear(duration: 0.1) : .linear(duration: 1.0)
+                            )
                             .environmentObject(map)
             }
         }

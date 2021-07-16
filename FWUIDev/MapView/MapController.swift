@@ -5,7 +5,7 @@ import SwiftUI
 import CoreLocation
 import MapboxMaps
 
-enum MapViewState:  Equatable {
+enum MapViewState: Equatable, CustomStringConvertible {
     /// Starting state with (or without) user location
     /// Gesturing enabled (free/roaming)
     case base
@@ -28,6 +28,18 @@ enum MapViewState:  Equatable {
         }
     }
 
+    static func ~= (lhs: MapViewState, rhs: MapViewState) -> Bool {
+        switch (lhs, rhs) {
+            case (.constrained(_), .constrained(_)):
+                return true
+            case (.base, .base),
+                 (.gesturing, .gesturing),
+                 (.animating, .animating):
+                return true
+            default: return false
+        }
+    }
+
     func constraints () -> MapViewConstraintGroup {
         switch self {
             case .constrained(let constraints):
@@ -38,6 +50,15 @@ enum MapViewState:  Equatable {
 
     func focusing () -> [FWMapSprite] {
         constraints().pan?.annotations() ?? []
+    }
+
+    var description: String {
+        switch self {
+            case .base: return "base"
+            case .gesturing: return "gesturing"
+            case .constrained: return "constrained"
+            case .animating: return "animating"
+        }
     }
 }
 
@@ -116,13 +137,22 @@ class MapController: ObservableObject {
         }
     }
     func interruptState (withState state: MapViewState) {
-        previousState = state
-        self.state = state
+        if !(state ~= self.state) {
+            print("interrupting state \(self.state) with \(state)")
+            previousState = self.state
+            self.state = state
+        }
     }
-    func endInterruption () {
-        assert(previousState != nil, "map.endInterruption called without a current interruption")
-        state = previousState!
-        previousState = nil
+    func endInterruption () -> MapViewState {
+        if let state = previousState {
+            self.state = state
+            previousState = nil
+            print("ending interruption from \(state) back to \(self.state)")
+            return state
+        } else {
+//            state = .base
+            return .base
+        }
     }
 }
 

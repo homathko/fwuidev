@@ -48,6 +48,8 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
         }
     }
 
+    private var gestureRecognizers: [UIGestureRecognizer: Bool] = [:]
+
     func notify (for event: MapboxMaps.Event) {
         guard let typedEvent = MapEvents.EventKind(rawValue: event.type),
               let mapView = mapView else {
@@ -67,10 +69,30 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
                 )
                 syncSwiftUI()
 
+                if gesturesEnded {
+                    parent?.controller.endInterruption()
+                }
+
             /// When the map reloads, we need to re-sync the annotations
             case .mapLoaded:
                 initialMapLoadComplete = true
                 mapView.gestures.delegate = self
+
+                let panGR = NoPreventionPanGestureRecognizer(target: self, action: nil)
+                panGR.addTarget(self, action: #selector(handleGesture(sender:)))
+                mapView.addGestureRecognizer(panGR)
+                gestureRecognizers.updateValue(false, forKey: panGR)
+
+                let pinchGR = NoPreventionPinchGestureRecognizer(target: self, action: nil)
+                pinchGR.addTarget(self, action: #selector(handleGesture(sender:)))
+                mapView.addGestureRecognizer(pinchGR)
+                gestureRecognizers.updateValue(false, forKey: pinchGR)
+
+                let tapGR = NoPreventionTapGestureRecognizer(target: self, action: nil)
+                tapGR.addTarget(self, action: #selector(handleGesture(sender:)))
+                mapView.addGestureRecognizer(tapGR)
+                gestureRecognizers.updateValue(false, forKey: tapGR)
+
                 /// Immediately limit pitch angle due to 2D annotations
                 let boundsOptions = CameraBoundsOptions(maxPitch: 24)
                 try! mapView.mapboxMap.setCameraBounds(for: boundsOptions)
@@ -120,8 +142,14 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
         /// Limit map zoom out
         let maxHeight = UIScreen.main.bounds.height * 0.65
         let newCamera = camera(forState: state, padding: insets.maximumHeight(maxHeight))
-//        mapView.camera.ease(to: newCamera, duration: state == .gesturing ? 0 : 1.0)
-        mapView.camera.ease(to: newCamera, duration: 0)
+
+        print("GesturesEnded: \(gesturesEnded)")
+        if gesturesEnded {
+            let state = parent?.controller.endInterruption()
+            mapView.camera.ease(to: newCamera, duration: state == .gesturing || state == .animating ? 0 : 1.0)
+        } else {
+            mapView.camera.ease(to: newCamera, duration: 0)
+        }
     }
 
     func syncSwiftUI () {
@@ -146,6 +174,22 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
     }
 
     func gestureBegan (for gestureType: GestureType) {
-        parent?.controller.state = .gesturing
+        parent?.controller.interruptState(withState: .gesturing)
+    }
+
+    @objc func handleGesture (sender: UIGestureRecognizer) {
+        gestureRecognizers[sender] = sender.state != .ended
+
+        if sender.state == .ended {
+            if gesturesEnded {
+                parent?.controller.endInterruption()
+            }
+        }
+    }
+
+    var gesturesEnded: Bool {
+        gestureRecognizers.filter({ key, value in
+            !value
+        }).count == 3
     }
 }
