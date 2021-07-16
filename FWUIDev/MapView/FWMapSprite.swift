@@ -50,7 +50,8 @@ struct FWMapSprite: Annotation, Locatable, FWMapScreenDrawable, Equatable {
 
     static func == (lhs: FWMapSprite, rhs: FWMapSprite) -> Bool {
         lhs.id == rhs.id &&
-                lhs.location.timestamp == rhs.location.timestamp
+                lhs.location.timestamp == rhs.location.timestamp &&
+                lhs.isSelected == rhs.isSelected
     }
 
     var isTransmitting: Bool {

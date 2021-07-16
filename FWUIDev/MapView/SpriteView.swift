@@ -7,15 +7,28 @@ import SwiftUI
 
 struct SpriteView: View {
     @EnvironmentObject var map: MapController
-    var sprite: FWMapSprite
+    @State var sprite: FWMapSprite
+    @State var isSelected: Bool = false
 
     @State private var opacity = 0.6
     @State private var scale: CGFloat = 0.5
 
     var body: some View {
         ZStack {
+            if isSelected {
+                whitePulse
+            }
             /// Accentuating graphics layers below sprite view
             view(sprite, totalRotation)
+        }
+        .onTapGesture {
+            print("Tapped \(sprite.title ?? "n/a")")
+            map.selectedByTap = sprite
+        }
+        .onChange(of: map.selectedByTap) { selected in
+            if selected == sprite {
+                isSelected = true
+            }
         }
     }
 
@@ -47,8 +60,8 @@ struct SpriteView: View {
 
     var repeatingAnimation: Animation {
         Animation
-                .easeIn(duration: Double.random(in: 0.4...1.8))
-                .repeatForever(autoreverses: false)
+                .easeIn(duration: 0.5)
+                .repeatForever(autoreverses: true)
     }
 
     var totalRotation: Double {
@@ -109,8 +122,10 @@ struct AssetSprite: View {
                 }.padding(.bottom, -8)
 
                 Image(systemName: sprite.isTransmitting ? "location.north.fill" : "location.north")
-                        //                        .scaleEffect(CGFloat(1 + camera.zoomFactor / 1 * 0.06))
+                        .frame(width: 30, height: 30)
+                        .scaleEffect(1.8)
                         .rotationEffect(.degrees(rotation), anchor: sprite.anchorPoint)
+                        .offset(y: -7)
 
                 Text(sprite.title ?? "")
             }
@@ -120,6 +135,8 @@ struct AssetSprite: View {
                 .foregroundColor(.white)
                 .frame(width: 100, height: 100)
                 .shadow(color: .black, radius: 10)
+                /// Make tappable area large
+                .contentShape(Rectangle())
     }
 
     var altitude: String {

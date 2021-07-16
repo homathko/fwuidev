@@ -64,7 +64,7 @@ class MapController: ObservableObject {
     }
     /// Is not nil, the user has selected one annotation among
     /// what is available in .showing by tapping it
-    var selectedByTap: FWMapSprite?
+    @Published var selectedByTap: FWMapSprite?
 
     /// Any applied constraints to the current map view
     /// and whether they are overridable
