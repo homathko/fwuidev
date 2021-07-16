@@ -12,38 +12,29 @@ enum FWMapSpriteType {
 }
 
 struct FWMapSprite: Annotation, Locatable, FWMapScreenDrawable, Equatable {
+    var model: AssetModel /// reference type
     /// The feature that is backing this annotation.
     var feature: Turf.Feature {
         Turf.Feature(geometry: .point(Point(location.coordinate)))
     }
 
-    var title: String? = nil
+    var title: String? { model.title }
 
     var isSelected: Bool = false
 
     var userInfo: [String: Any]?
 
-    var id: String
+    var id: String { model.id }
 
-    var location: CLLocation
+    var location: CLLocation { model.location }
     var point: CGPoint? = nil
-    var spriteType: FWMapSpriteType
-    var course: Int? = nil
-    var speed: Double? = nil
+    var spriteType: FWMapSpriteType { model.spriteType }
+    var course: Int { Int(location.course) }
+    var speed: Double { location.speed/0.514444 }
 
-    init <V: Locatable & Identifiable>(
-            model: V,
-            spriteType: FWMapSpriteType,
-            name: String? = nil,
-            userInfo: [String: Any]? = nil
-    ) where V.ID == String {
-        id = model.id
-        location = model.location
-        self.spriteType = spriteType
-        title = name
+    init (model: AssetModel, userInfo: [String: Any]? = nil) {
+        self.model = model
         self.userInfo = userInfo
-        course = Int(location.course)
-        speed = location.speed/0.514444
     }
 
     static func == (lhs: FWMapSprite, rhs: FWMapSprite) -> Bool {

@@ -148,11 +148,7 @@ struct AssetSprite: View {
     }
 
     var speed: String {
-        if let spd = sprite.speed {
-            return "\(spd)KTS"
-        } else {
-            return ""
-        }
+        "\(sprite.speed)KTS"
     }
 }
 

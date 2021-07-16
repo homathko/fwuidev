@@ -37,7 +37,7 @@ class AssetsCoordinator: ObservableObject {
                 if let i = self.annotations.firstIndex(where: { $0.id == asset.id } ) {
                     self.annotations.remove(at: i)
                     self.annotations.insert(
-                            FWMapSprite(model: asset, spriteType: asset.spriteType, name: asset.title),
+                            FWMapSprite(model: asset),
                             at: i
                     )
                 }
@@ -45,11 +45,7 @@ class AssetsCoordinator: ObservableObject {
         }
 
         annotations = assets.map {
-            FWMapSprite(
-                    model: $0,
-                    spriteType: $0.spriteType,
-                    name: $0.title
-            )
+            FWMapSprite(model: $0)
         }
 
         /// Make ASS1 move
