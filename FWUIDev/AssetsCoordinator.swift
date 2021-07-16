@@ -53,8 +53,13 @@ class AssetsCoordinator: ObservableObject {
         }
 
         /// Make ASS1 move
-        assets[0].start()
+        assets[0].start(speed: 100, direction: .west)
+        assets[1].start(speed: 100, direction: .east)
     }
+}
+
+enum Direction {
+    case east, west
 }
 
 class AssetModel: Identifiable, Locatable, FWMapScreenDrawable, ObservableObject {
@@ -79,12 +84,12 @@ class AssetModel: Identifiable, Locatable, FWMapScreenDrawable, ObservableObject
         telemetryMocker = TelemetryMocker(start: CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude))
     }
 
-    func start () {
+    func start (speed: Double, direction: Direction) {
         cancellable = telemetryMocker.$location.receive(on: DispatchQueue.main).sink { loc in
             self.location = loc
         }
 
-        telemetryMocker.start(speedInKnots: 100)
+        telemetryMocker.start(speedInKnots: speed, direction: direction)
     }
 
     var shouldDisplayAltitude: Bool { true }

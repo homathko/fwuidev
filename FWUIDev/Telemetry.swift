@@ -14,17 +14,18 @@ class TelemetryMocker: ObservableObject {
         location = start
     }
 
-    public func start (speedInKnots knots: Double) {
+    public func start (speedInKnots knots: Double, direction: Direction) {
+        let interval = direction == .west ? -(1/60 * (knots/3600)) : 1/60 * (knots/3600)
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
             self.location = CLLocation(
                     coordinate: CLLocationCoordinate2D(
                             latitude: self.location.coordinate.latitude,
-                            longitude: self.location.coordinate.longitude - 1/60 * (knots/3600)
+                            longitude: self.location.coordinate.longitude + interval
                     ),
                     altitude: 2000,
                     horizontalAccuracy: .greatestFiniteMagnitude,
                     verticalAccuracy: .greatestFiniteMagnitude,
-                    course: 270,
+                    course: direction == .west ? 270 : 90,
                     speed: knots*0.514444,
                     timestamp: Date()
             )

@@ -51,9 +51,8 @@ struct ContentView: View {
                                 headerHeight: $headerHeight,
                                 cardTop: $cardTop) {
 
-                            YellowView(map: map)
+                            YellowView(coordinator: coordinator, map: map)
                                     .navigationBarTitle("Fucking SwiftUI", displayMode: .inline)
-                                    .environmentObject(coordinator)
                         }
                             .environmentObject(map)
                     }
@@ -67,10 +66,10 @@ struct ContentView: View {
 }
 
 struct YellowView: View {
-    @EnvironmentObject var coordinator: AssetsCoordinator
+    var coordinator: AssetsCoordinator
     var map: MapController
     var body: some View {
-        NavigationLink(destination: GreenView(map: map)) {
+        NavigationLink(destination: GreenView(coordinator: coordinator, map: map)) {
             ZStack {
                 Color.yellow
                 Text("Pin 1")
@@ -81,11 +80,11 @@ struct YellowView: View {
 }
 
 struct GreenView: View {
-    @EnvironmentObject var coordinator: AssetsCoordinator
+    var coordinator: AssetsCoordinator
     var map: MapController
 
     var body: some View {
-        NavigationLink(destination: RedView(map: map)) {
+        NavigationLink(destination: RedView(coordinator: coordinator, map: map)) {
             ZStack {
                 Color.green
                 Text("Pin 2")
@@ -96,7 +95,7 @@ struct GreenView: View {
 }
 
 struct RedView: View {
-    @EnvironmentObject var coordinator: AssetsCoordinator
+    var coordinator: AssetsCoordinator
     var map: MapController
     var body: some View {
         Color.red

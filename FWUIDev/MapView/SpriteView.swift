@@ -118,8 +118,7 @@ struct AssetSprite: View {
     var rotation: Double
 
     var body: some View {
-        print(rotation)
-        return ZStack {
+        ZStack {
             VStack {
                 VStack {
                     Text(sprite.shouldDisplayAltitude ? altitude : "")
