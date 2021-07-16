@@ -26,7 +26,7 @@ struct FWMapSprite: Annotation, Locatable, FWMapScreenDrawable, Equatable {
 
     var id: String { model.id }
 
-    var location: CLLocation { model.location }
+    var location: CLLocation
     var point: CGPoint? = nil
     var spriteType: FWMapSpriteType { model.spriteType }
     var course: Int { Int(location.course) }
@@ -34,6 +34,7 @@ struct FWMapSprite: Annotation, Locatable, FWMapScreenDrawable, Equatable {
 
     init (model: AssetModel, userInfo: [String: Any]? = nil) {
         self.model = model
+        location = model.location
         self.userInfo = userInfo
     }
 

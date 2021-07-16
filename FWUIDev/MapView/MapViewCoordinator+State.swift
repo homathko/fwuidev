@@ -28,14 +28,14 @@ extension MapboxViewCoordinator {
         }
     }
 
-    internal func camera (forState state: MapViewState, padding: UIEdgeInsets = .zero) -> CameraOptions {
+    internal func camera (forState state: MapViewState, annotations: [FWMapSprite], padding: UIEdgeInsets = .zero) -> CameraOptions {
         guard let mapView = mapView else {
             return CameraOptions()
         }
 
         let cameraState = mapView.cameraState
 
-        let focused = state.focusing()
+        let focused = annotations.filter { state.focusing().contains($0.id) }
         /// With no focus, camera options should not be modified
         if focused.count == 0 {
             return CameraOptions(cameraState: cameraState, padding: padding)
@@ -69,9 +69,9 @@ extension MapboxViewCoordinator {
         /// (padded) but zooming farther away should be allowed if
         /// the constraint is overridable
         else if focused.count >= 1 {
-            var camera = mapView.mapboxMap.camera(
+            let camera = mapView.mapboxMap.camera(
                 for: Geometry.polygon(Polygon([
-                    state.focusing().map {
+                    focused.map {
                         $0.location.coordinate
                     }
                 ])),

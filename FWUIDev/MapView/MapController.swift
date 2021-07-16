@@ -48,8 +48,8 @@ enum MapViewState: Equatable, CustomStringConvertible {
         }
     }
 
-    func focusing () -> [FWMapSprite] {
-        constraints().pan?.annotations() ?? []
+    func focusing () -> [String] {
+        constraints().pan?.annotations().map { $0.id } ?? []
     }
 
     var description: String {
@@ -80,8 +80,8 @@ class MapController: ObservableObject {
 
     /// All annotations that are in .showing prop that are
     /// supposed to be kept in frame at one time
-    var focusing: [FWMapSprite] {
-        constraints.pan?.annotations() ?? []
+    var focusing: [String] {
+        constraints.pan?.annotations() .map { $0.id } ?? []
     }
     /// Is not nil, the user has selected one annotation among
     /// what is available in .showing by tapping it

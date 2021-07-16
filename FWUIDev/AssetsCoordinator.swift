@@ -37,8 +37,8 @@ class AssetsCoordinator: ObservableObject {
                 if let i = self.annotations.firstIndex(where: { $0.id == asset.id } ) {
                     self.annotations.remove(at: i)
                     self.annotations.insert(
-                            FWMapSprite(model: asset),
-                            at: i
+                        FWMapSprite(model: asset),
+                        at: i
                     )
                 }
             }.store(in: &cancellables)
@@ -49,8 +49,8 @@ class AssetsCoordinator: ObservableObject {
         }
 
         /// Make ASS1 move
-        assets[0].start(speed: 1000, direction: .west)
-        assets[1].start(speed: 1000, direction: .east)
+        assets[0].start(speed: 100, direction: .west)
+//        assets[1].start(speed: 1000, direction: .east)
     }
 }
 
