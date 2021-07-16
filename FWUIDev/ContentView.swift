@@ -9,56 +9,6 @@ import SwiftUI
 import CoreLocation
 import UIKit
 
-struct AssetModel: Identifiable, Locatable, FWMapScreenDrawable {
-    var id = UUID().uuidString
-    var location: CLLocation
-    var heading: Int = 0
-
-    var spriteType: FWMapSpriteType = .asset
-    var point: CGPoint?
-
-    init (coordinate: CLLocationCoordinate2D) {
-        location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-    }
-
-    var shouldDisplayAltitude: Bool { true }
-    var shouldDisplaySpeed: Bool { true }
-    var rotationModifier: RotationModifier { .heading(heading) }
-    var anchorPoint: UnitPoint { .center }
-}
-
-/// Seed data (will come from "AnnotationPublisher" conformer)
-var sprites: [FWMapSprite] = [
-    FWMapSprite(
-            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.716700, longitude: -123.142448)),
-            spriteType: .user,
-            name: "User"
-    ),
-    FWMapSprite(
-            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.316054, longitude: -122.805009)),
-            spriteType: .asset,
-            name: "Asset 1"
-    ),
-    FWMapSprite(
-            model: AssetModel(coordinate: CLLocationCoordinate2D(latitude: 49.498542, longitude: -123.921399)),
-            spriteType: .asset,
-            name: "Asset 2"
-    )
-]
-
-//        +
-//        (0...50).map { _ in
-//            FWMapSprite(
-//                    model: AssetModel(
-//                            coordinate: CLLocationCoordinate2D(
-//                                    latitude: Double.random(in: 47...51),
-//                                    longitude: -Double.random(in: 121...125)
-//                            )
-//                    ),
-//                    spriteType: .asset
-//            )
-//        }
-
 struct ContentView: View {
     @StateObject var map: MapController = .init()
     @State var insets: UIEdgeInsets = .zero
@@ -69,6 +19,9 @@ struct ContentView: View {
     @State var cardTop: CGFloat = UIScreen.main.bounds.height
     @State var mapInsetBottomPadding: CGFloat = UIScreen.main.bounds.height
     @State var cardHeight: CGFloat = UIScreen.main.bounds.height
+
+    @ObservedObject var coordinator = AssetsCoordinator()
+    @State var annotations: [FWMapSprite] = []
 
     var body: some View {
         /// Observe taps on tab bar items that change
@@ -88,7 +41,10 @@ struct ContentView: View {
             TabView(selection: selection) {
                 GeometryReader { proxy in
                     ZStack {
-                        FWMapView(map: map, annotations: sprites, cardTop: $cardTop, bottomInset: proxy.safeAreaInsets.bottom)
+                        FWMapView(map: map, annotations: $annotations, cardTop: $cardTop, bottomInset: proxy.safeAreaInsets.bottom)
+                                .onReceive(coordinator.$annotations) { assets in
+                                    annotations = assets
+                                }
                         FWCardView(
                                 cardState: $cardState,
                                 detentHeight: $detentHeight,
@@ -97,6 +53,7 @@ struct ContentView: View {
 
                             YellowView(map: map)
                                     .navigationBarTitle("Fucking SwiftUI", displayMode: .inline)
+                                    .environmentObject(coordinator)
                         }
                             .environmentObject(map)
                     }
@@ -110,6 +67,7 @@ struct ContentView: View {
 }
 
 struct YellowView: View {
+    @EnvironmentObject var coordinator: AssetsCoordinator
     var map: MapController
     var body: some View {
         NavigationLink(destination: GreenView(map: map)) {
@@ -118,11 +76,12 @@ struct YellowView: View {
                 Text("Pin 1")
             }
         }
-                .mapConstraint(map: map, .pan([sprites[0]], false), merge: true)
+                .mapConstraint(map: map, .pan([coordinator.annotations[0]], false), merge: true)
     }
 }
 
 struct GreenView: View {
+    @EnvironmentObject var coordinator: AssetsCoordinator
     var map: MapController
 
     var body: some View {
@@ -130,16 +89,17 @@ struct GreenView: View {
             ZStack {
                 Color.green
                 Text("Pin 2")
-                        .mapConstraint(map: map, .pan([sprites[1]], true), merge: true)
+                        .mapConstraint(map: map, .pan([coordinator.annotations[1]], true), merge: true)
             }
         }
     }
 }
 
 struct RedView: View {
+    @EnvironmentObject var coordinator: AssetsCoordinator
     var map: MapController
     var body: some View {
         Color.red
-                .mapConstraint(map: map, .pan([sprites[2]], true), merge: true)
+                .mapConstraint(map: map, .pan([coordinator.annotations[2]], true), merge: true)
     }
 }

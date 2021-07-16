@@ -8,7 +8,7 @@ import MapboxMaps
 
 struct FWMapView: View {
     var map: MapController
-    var annotations: [FWMapSprite]
+    @Binding var annotations: [FWMapSprite]
     @Binding var cardTop: CGFloat
     var bottomInset: CGFloat
     @State private var visibleSprites = [FWMapSprite]()

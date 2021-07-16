@@ -31,21 +31,19 @@ struct FWMapSprite: Annotation, Locatable, FWMapScreenDrawable, Equatable {
     var course: Int? = nil
     var speed: Double? = nil
 
-    init <V: Locatable>(
+    init <V: Locatable & Identifiable>(
             model: V,
             spriteType: FWMapSpriteType,
             name: String? = nil,
             userInfo: [String: Any]? = nil
-    ) {
-        id = UUID().uuidString
+    ) where V.ID == String {
+        id = model.id
         location = model.location
         self.spriteType = spriteType
         title = name
         self.userInfo = userInfo
-        if let hasCourseSpeed = model as? HasCourseSpeed {
-            course = hasCourseSpeed.course
-            speed = hasCourseSpeed.speed
-        }
+        course = Int(location.course)
+        speed = location.speed/0.514444
     }
 
     static func == (lhs: FWMapSprite, rhs: FWMapSprite) -> Bool {
@@ -67,7 +65,7 @@ struct FWMapSprite: Annotation, Locatable, FWMapScreenDrawable, Equatable {
     }
 
     var rotationModifier: RotationModifier {
-        .heading(userInfo?["course"] as? Int ?? 0)
+        .heading(course ?? 0)
     }
 
     var anchorPoint: UnitPoint = .center
