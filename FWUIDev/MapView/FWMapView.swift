@@ -24,11 +24,9 @@ struct FWMapView: View {
 
             ForEach(visibleSprites, id: \.id) { sprite in
                     SpriteView(sprite: sprite)
+                            /// In order for sprites to respond to gestures
+                            /// .position needs to be stated in this view
                             .position(sprite.point!)
-                            .animation(
-                                    map.state == .gesturing || map.state == .animating ?
-                                            .linear(duration: 0.1) : .linear(duration: 1.0)
-                            )
                             .environmentObject(map)
             }
         }

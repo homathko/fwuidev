@@ -3,6 +3,7 @@ import UIKit
 import MapboxMaps
 import Turf
 import SwiftUI
+import Combine
 
 extension StyleURI {
     static let myStyle = StyleURI(rawValue: "mapbox://styles/htek/ck3rpnd7i1ddp1cp7nn6m2q3x")!
@@ -122,6 +123,12 @@ struct MapboxViewRepresentable: UIViewRepresentable {
         /// to use controller
         context.coordinator.parent = self
 
+        context.coordinator.cancellable = mapView.camera.publisher.sink(
+                receiveValue: { animator in
+                    print(animator)
+                }
+        )
+
         return mapView
     }
 
@@ -137,7 +144,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
         var syncFlag = false
         /// The coordinator needs to manage annotations because
         /// they need to be applied *after* `.mapLoaded`
-        if context.coordinator.annotations != annotations {
+        if context.coordinator.annotations != annotations && controller.state != .gesturing {
             context.coordinator.annotations = annotations
             syncFlag = true
         }

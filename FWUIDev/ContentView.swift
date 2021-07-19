@@ -66,7 +66,7 @@ struct ContentView: View {
 }
 
 struct YellowView: View {
-    @ObservedObject var coordinator: AssetsCoordinator
+    var coordinator: AssetsCoordinator
     var map: MapController
     var body: some View {
         NavigationLink(destination: GreenView(coordinator: coordinator, map: map)) {
@@ -75,12 +75,15 @@ struct YellowView: View {
                 Text("Pin 1")
             }
         }
-                .mapConstraint(map: map, .pan([coordinator.annotations[0]], true), merge: true)
+                .mapConstraints(map: map, [
+                    .pan([coordinator.annotations[0]], true),
+                    .zoom(12.4, true)
+                ], merge: true)
     }
 }
 
 struct GreenView: View {
-    @ObservedObject var coordinator: AssetsCoordinator
+    var coordinator: AssetsCoordinator
     var map: MapController
 
     var body: some View {
@@ -95,7 +98,7 @@ struct GreenView: View {
 }
 
 struct RedView: View {
-    @ObservedObject var coordinator: AssetsCoordinator
+    var coordinator: AssetsCoordinator
     var map: MapController
     var body: some View {
         Color.red

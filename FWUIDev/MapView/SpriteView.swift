@@ -21,6 +21,12 @@ struct SpriteView: View {
             /// Accentuating graphics layers below sprite view
             view(sprite, totalRotation)
         }
+//                .position(sprite.point!)
+                /// the next line breaks any sprite animations after one cycle
+                .animation(
+                        map.state == .gesturing || map.state == .animating ?
+                                nil : .linear(duration: 1.0)
+                , value: sprite.point)
         .onTapGesture {
             print("Tapped \(sprite.title ?? "n/a")")
             map.selectedByTap = sprite
@@ -144,11 +150,11 @@ struct AssetSprite: View {
     }
 
     var altitude: String {
-        "\(sprite.location.altitude)'"
+        "\(Int(sprite.location.altitude))'"
     }
 
     var speed: String {
-        "\(sprite.speed)KTS"
+        "\(Int(sprite.speed))KTS"
     }
 }
 

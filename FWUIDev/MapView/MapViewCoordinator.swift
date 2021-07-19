@@ -22,6 +22,8 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
         }
     }
 
+    var cancellable: AnyCancellable?
+
     /// Use coordinator to hold previous value and guard
     var centerCoordinate: CLLocationCoordinate2D = .init()
     var bottomPadding: CGFloat = .zero
@@ -70,8 +72,14 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
                 syncSwiftUI()
 
                 if gesturesEnded {
-                    parent?.controller.endInterruption()
+                    _ = parent?.controller.endInterruption()
                 }
+
+//                if isAnimating {
+//                    parent?.controller.interruptState(withState: .animating)
+//                } else {
+//                    _ = parent?.controller.endInterruption()
+//                }
 
             /// When the map reloads, we need to re-sync the annotations
             case .mapLoaded:
@@ -145,9 +153,9 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
 
         if gesturesEnded {
             let state = parent?.controller.endInterruption()
-            mapView.camera.ease(to: newCamera, duration: state == .gesturing || state == .animating ? 0 : 1.0)
+            mapView.camera.ease(to: newCamera, duration: 1.0, curve: .linear)
         } else {
-            mapView.camera.ease(to: newCamera, duration: 0)
+            mapView.mapboxMap.setCamera(to: newCamera)
         }
     }
 
@@ -190,5 +198,9 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
         gestureRecognizers.filter({ key, value in
             !value
         }).count == 3
+    }
+
+    var isAnimating: Bool {
+        (mapView?.camera.cameraAnimators.count ?? 0) > 0
     }
 }
