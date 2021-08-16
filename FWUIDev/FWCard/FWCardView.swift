@@ -10,7 +10,10 @@ struct FWCardView<CardContent: View>: View {
     /// need to take part in changing maps state
     @EnvironmentObject var map: MapController
 
+    /// The positional state of the card (collapsed, partial, full)
     @Binding var cardState: FWCardState
+    /// The transitional state of the card (idle, gesturing, animating)
+    @Binding var transState: FWCardTransitionState
     @Binding var detentHeight: CGFloat
     @Binding var headerHeight: CGFloat
     @Binding internal var cardTop: CGFloat
@@ -56,12 +59,12 @@ struct FWCardView<CardContent: View>: View {
                     .gesture(
                             DragGesture()
                                     .onChanged { gesture in
-                                        map.interruptState(withState: .gesturing)
+                                        transState = .gesturing
                                         cardTop = lastOffsetY + gesture.translation.height
                                     }
                                     .onEnded { drag in
+                                        transState = .animating // If only for a short time
                                         onDragEnded(drag: drag)
-                                        map.endInterruption()
                                     }
                     )
                     .onAppear {
@@ -69,6 +72,7 @@ struct FWCardView<CardContent: View>: View {
                         setCardTopForState(proxy, cardState)
                     }
                     .onChange(of: cardState) { newState in
+                        transState = .animating
                         setCardTopForState(proxy, newState)
                     }
         }
@@ -89,7 +93,6 @@ struct FWCardView<CardContent: View>: View {
     }
 
     private func setCardTopForState (_ proxy: GeometryProxy, _ state: FWCardState) {
-        map.interruptState(withState: .animating)
         switch state {
             case .collapsed:
                 setCardTop(proxy: proxy, y: proxy.size.height - handleHeight)
@@ -98,13 +101,16 @@ struct FWCardView<CardContent: View>: View {
             case .full:
                 setCardTop(proxy: proxy, y: proxy.frame(in: .local).origin.y)
         }
-        map.endInterruption()
     }
 
     internal func setCardTop (proxy: GeometryProxy, y: CGFloat) {
-        withAnimation(.spring(response: 0.3)) {
+        let duration = 0.3
+        withAnimation(.spring(response: duration)) {
             cardTop = y
         }
-        lastOffsetY = cardTop
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            lastOffsetY = cardTop
+            self.transState = .idle
+        }
     }
 }

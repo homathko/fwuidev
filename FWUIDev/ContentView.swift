@@ -12,6 +12,7 @@ import UIKit
 struct ContentView: View {
     @StateObject var map: MapController = .init()
     @State private var cardState: FWCardState = .partial
+    @State private var cardTransState: FWCardTransitionState = .animating
     @State private var selectedTab: Int = 0
     @State private var detentHeight: CGFloat = 200
     @State private var headerHeight: CGFloat = 0
@@ -40,27 +41,20 @@ struct ContentView: View {
             TabView(selection: selection) {
                 GeometryReader { proxy in
                     ZStack {
-                        FWMapView(map: map, annotations: $annotations, cardTop: $cardTop, bottomInset: proxy.safeAreaInsets.bottom)
+                        FWMapView(map: map, annotations: $annotations, cardTop: $cardTop, cardTransState: $cardTransState, bottomInset: proxy.safeAreaInsets.bottom)
                                 .onReceive(coordinator.$annotations) { assets in
                                     annotations = assets
                                 }
                         FWCardView(
                                 cardState: $cardState,
+                                transState: $cardTransState,
                                 detentHeight: $detentHeight,
                                 headerHeight: $headerHeight,
                                 cardTop: $cardTop) {
 
-                            YellowView(mapViewState: $map.state)
+                            YellowView(coordinator: coordinator, cardTransState: $cardTransState)
                                     .navigationBarTitle("Fucking SwiftUI", displayMode: .inline)
                         }
-                                .onAppear {
-                                    let group = MapViewConstraintGroup([
-                                        .pan([coordinator.annotations[0]], true),
-                                        .zoom(12.4, true)
-                                    ])
-
-                                    map.push(group: group)
-                                }
                     }
                     .environmentObject(map)
             }
@@ -74,45 +68,43 @@ struct ContentView: View {
 }
 
 struct YellowView: View {
-//    var coordinator: AssetsCoordinator
-    @Binding var mapViewState: MapViewState
+    @EnvironmentObject var map: MapController
+    var coordinator: AssetsCoordinator
+    @Binding var cardTransState: FWCardTransitionState
     var body: some View {
-//        NavigationLink(destination: GreenView(coordinator: coordinator, map: map)) {
+        NavigationLink(destination: GreenView(coordinator: coordinator, map: map)) {
             ZStack {
                 Color.yellow
                 VStack {
-                    Text("MapController.state: \(mapViewState.description)").padding()
+                    Text("Card Transition State: \(cardTransState.rawValue)").padding()
                     Spacer()
                 }
             }
-//        }
-//                .mapConstraints(map: map, [
-//                    .pan([coordinator.annotations[0]], true),
-//                    .zoom(12.4, true)
-//                ], merge: true)
+                    .mapConstraints(map: map, [.pan([coordinator.annotations[2]], true), .zoom(11, true)], merge: false)
+        }
     }
 }
 
-//struct GreenView: View {
-//    var coordinator: AssetsCoordinator
-//    var map: MapController
-//
-//    var body: some View {
-//        NavigationLink(destination: RedView(coordinator: coordinator, map: map)) {
-//            ZStack {
-//                Color.green
-//                Text("Pin 2")
-//                        .mapConstraint(map: map, .pan([coordinator.annotations[1]], true), merge: true)
-//            }
-//        }
-//    }
-//}
-//
-//struct RedView: View {
-//    var coordinator: AssetsCoordinator
-//    var map: MapController
-//    var body: some View {
-//        Color.red
-//                .mapConstraint(map: map, .pan([coordinator.annotations[2]], true), merge: true)
-//    }
-//}
+struct GreenView: View {
+    var coordinator: AssetsCoordinator
+    var map: MapController
+
+    var body: some View {
+        NavigationLink(destination: RedView(coordinator: coordinator, map: map)) {
+            ZStack {
+                Color.green
+                Text("Pin 2")
+            }
+                    .mapConstraint(map: map, .pan([coordinator.annotations[0]], true), merge: false)
+        }
+    }
+}
+
+struct RedView: View {
+    var coordinator: AssetsCoordinator
+    var map: MapController
+    var body: some View {
+        Color.red
+                .mapConstraint(map: map, .pan([coordinator.annotations[1]], true), merge: true)
+    }
+}

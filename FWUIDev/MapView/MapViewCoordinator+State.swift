@@ -42,28 +42,29 @@ extension MapboxViewCoordinator {
         }
             /// With a single focii, previous camera zoom factor could
             /// be used if not specified in a constraint
-//        else if focused.count == 1 {
-//            var nextZoom: CGFloat = 0.0
-//            if let zoom = state.constraints().zoom {
-//                /// There is a specified zoom constraint
-//                if case .zoom(let value, _) = zoom {
-//                    nextZoom = CGFloat(value)
-//                }
-//            } else {
-//                /// No constraint, use previous
-//                nextZoom = mapView.cameraState.zoom
-//            }
-//
-//            nextZoom = max(6, mapView.cameraState.zoom)
-//            nextZoom = min(10, mapView.cameraState.zoom)
-//
-//            return CameraOptions(
-//                    cameraState: cameraState,
-//                    center: focused.first!.location.coordinate,
-//                    padding: padding,
-//                    zoom: nextZoom
-//            )
-//        }
+        else if focused.count == 1 {
+            var nextZoom: CGFloat = 0.0
+            if let zoom = state.lastConstraintGroup()?.zoom {
+                /// There is a specified zoom constraint
+                if case .zoom(let value, let canOverride) = zoom {
+                    if !canOverride {
+                        nextZoom = CGFloat(value)
+                    } else {
+                        nextZoom = mapView.cameraState.zoom
+                    }
+                }
+            } else {
+                /// No constraint, use previous
+                nextZoom = mapView.cameraState.zoom
+            }
+
+            return CameraOptions(
+                    cameraState: cameraState,
+                    center: focused.first!.location.coordinate,
+                    padding: padding,
+                    zoom: nextZoom
+            )
+        }
 
         /// With many focii, zoom should be set to fit them "comfortably"
         /// (padded) but zooming farther away should be allowed if

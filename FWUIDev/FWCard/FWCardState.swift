@@ -8,6 +8,6 @@ public enum FWCardState: String {
     case collapsed, partial, full
 }
 
-public enum FWCardTransitionState {
+public enum FWCardTransitionState: String {
     case idle, gesturing, animating
 }

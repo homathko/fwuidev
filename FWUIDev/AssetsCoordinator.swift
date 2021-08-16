@@ -50,7 +50,7 @@ class AssetsCoordinator: ObservableObject {
 
         /// Make ASS1+ASS2 move
         assets[0].start(speed: 400, direction: .west)
-//        assets[1].start(speed: 160, direction: .east)
+        assets[1].start(speed: 400, direction: .east)
     }
 }
 

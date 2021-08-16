@@ -21,9 +21,10 @@ struct MapboxViewRepresentable: UIViewRepresentable {
     /// other UI elements to stay in sync as the user interacts
     /// with the map.
 
-    @ObservedObject var controller: MapController
+    @ObservedObject var map: MapController
 
     @Binding var cardTop: CGFloat
+    @Binding var cardTransState: FWCardTransitionState
     var bottomInset: CGFloat
 
     /// Update parent view when camera changes, etc
@@ -121,13 +122,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
 
         /// MapCoordinator will need to be able
         /// to use controller
-        context.coordinator.parent = self
-
-        context.coordinator.cancellable = mapView.camera.publisher.sink(
-                receiveValue: { animator in
-                    print(animator)
-                }
-        )
+        context.coordinator.viewRepresentable = self
 
         return mapView
     }
@@ -144,7 +139,7 @@ struct MapboxViewRepresentable: UIViewRepresentable {
         var syncFlag = false
         /// The coordinator needs to manage annotations because
         /// they need to be applied *after* `.mapLoaded`
-        if context.coordinator.annotations != annotations && controller.state != .gesturing {
+        if context.coordinator.annotations != annotations && map.transState != .gesturing && cardTransState != .gesturing {
             context.coordinator.annotations = annotations
             syncFlag = true
         }
@@ -155,12 +150,19 @@ struct MapboxViewRepresentable: UIViewRepresentable {
             syncFlag = true
         }
 
-        if context.coordinator.state != controller.state {
-//            print("MapViewState change -> \(controller.state)")
-            context.coordinator.state = controller.state
+        if context.coordinator.cardTransState != cardTransState {
+            context.coordinator.cardTransState = cardTransState
             syncFlag = true
         }
 
-        if syncFlag { context.coordinator.syncMapState() }
+        if context.coordinator.state != map.state {
+//            print("MapViewState change -> \(controller.state)")
+            context.coordinator.state = map.state
+            syncFlag = true
+        }
+
+        if syncFlag {
+            context.coordinator.syncMapState()
+        }
     }
 }

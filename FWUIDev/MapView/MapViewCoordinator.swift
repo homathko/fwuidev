@@ -11,6 +11,8 @@ import Turf
 internal class MapboxViewCoordinator: GestureManagerDelegate {
 
     var state = MapViewState.base
+    var transState = MapViewTransitionState.animating
+    var cardTransState = FWCardTransitionState.animating
 
     /// It also has a setter for annotations. When the annotations
     /// are set, it synchronizes them to the map
@@ -63,7 +65,7 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
             /// will propagate this change to any other UI elements connected
             /// to the same binding.
             case .cameraChanged: ()
-                parent?.controller.camera = MapCameraState(
+                viewRepresentable?.map.camera = MapCameraState(
                         center: mapView.cameraState.center,
                         heading: mapView.cameraState.bearing,
                         zoom: mapView.cameraState.zoom,
@@ -71,15 +73,13 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
                 )
                 syncSwiftUI()
 
-                if gesturesEnded {
-                    _ = parent?.controller.endInterruption()
+                if !gesturesEnded {
+                    viewRepresentable?.map.transState = .gesturing
+                } else if isAnimating {
+                    viewRepresentable?.map.transState = .animating
+                } else {
+                    viewRepresentable?.map.transState = .idle
                 }
-
-//                if isAnimating {
-//                    parent?.controller.interruptState(withState: .animating)
-//                } else {
-//                    _ = parent?.controller.endInterruption()
-//                }
 
             /// When the map reloads, we need to re-sync the annotations
             case .mapLoaded:
@@ -112,7 +112,7 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
         }
     }
 
-    var parent: MapboxViewRepresentable?
+    var viewRepresentable: MapboxViewRepresentable?
 
     /// Only sync annotations once the map's initial load is complete
     private var initialMapLoadComplete = false
@@ -151,12 +151,16 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
         let maxHeight = UIScreen.main.bounds.height * 0.65
         let newCamera = camera(forState: state, annotations: annotations, padding: insets.maximumHeight(maxHeight))
 
-        if gesturesEnded {
-            let state = parent?.controller.endInterruption()
+        if viewRepresentable?.map.transState != .gesturing &&
+                   cardTransState != .gesturing && cardTransState != .animating {
+            // should animate map camera change TRUE
             mapView.camera.ease(to: newCamera, duration: 1.0, curve: .linear)
         } else {
+            // should animate map camera change FALSE
+            mapView.camera.cancelAnimations()
             mapView.mapboxMap.setCamera(to: newCamera)
         }
+
     }
 
     func syncSwiftUI () {
@@ -181,7 +185,7 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
     }
 
     func gestureBegan (for gestureType: GestureType) {
-        parent?.controller.interruptState(withState: .gesturing)
+        viewRepresentable?.map.transState = .gesturing
     }
 
     @objc func handleGesture (sender: UIGestureRecognizer) {
@@ -189,7 +193,7 @@ internal class MapboxViewCoordinator: GestureManagerDelegate {
 
         if sender.state == .ended {
             if gesturesEnded {
-                parent?.controller.endInterruption()
+                viewRepresentable?.map.transState = .idle
             }
         }
     }

@@ -9,6 +9,7 @@ struct SpriteView: View {
     @EnvironmentObject var map: MapController
     var sprite: FWMapSprite
     @State var isSelected: Bool = false
+    var animate: Bool
 
     @State private var opacity = 0.6
     @State private var scale: CGFloat = 0.5
@@ -21,11 +22,9 @@ struct SpriteView: View {
             /// Accentuating graphics layers below sprite view
             view(sprite, totalRotation)
         }
-//                .position(sprite.point!)
                 /// the next line breaks any sprite animations after one cycle
                 .animation(
-                        map.state == .gesturing || map.state == .animating ?
-                                nil : .linear(duration: 1.0)
+                        animate ? .linear(duration: 1.0) : nil
                 , value: sprite.point)
         .onTapGesture {
             print("Tapped \(sprite.title ?? "n/a")")

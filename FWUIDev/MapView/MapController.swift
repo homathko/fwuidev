@@ -4,25 +4,21 @@
 import SwiftUI
 import CoreLocation
 import MapboxMaps
-
-enum MapViewState: Equatable, CustomStringConvertible {
+enum MapViewTransitionState: String {
+    case idle, gesturing, animating
+}
+enum MapViewState: Equatable {
     /// Starting state with (or without) user location
     /// Gesturing enabled (free/roaming)
     case base
     /// Constrained to focus on group of sprites
     case constrained([MapViewConstraintGroup])
-    /// Current gesture
-    case gesturing
-    /// A cancellable animation is in progress
-    case animating
 
     static func == (lhs: MapViewState, rhs: MapViewState) -> Bool {
         switch (lhs, rhs) {
             case (.constrained(let lha), .constrained(let rha)):
                 return lha == rha
-            case (.base, .base),
-                 (.gesturing, .gesturing),
-                 (.animating, .animating):
+            case (.base, .base):
                 return true
             default: return false
         }
@@ -32,9 +28,7 @@ enum MapViewState: Equatable, CustomStringConvertible {
         switch (lhs, rhs) {
             case (.constrained(_), .constrained(_)):
                 return true
-            case (.base, .base),
-                 (.gesturing, .gesturing),
-                 (.animating, .animating):
+            case (.base, .base):
                 return true
             default: return false
         }
@@ -48,17 +42,16 @@ enum MapViewState: Equatable, CustomStringConvertible {
         }
     }
 
-    func focusing () -> [String] {
-        constraints().pan?.annotations().map { $0.id } ?? []
+    func lastConstraintGroup () -> MapViewConstraintGroup? {
+        switch self {
+            case .constrained(let constraints):
+                return constraints.last
+            default: return nil
+        }
     }
 
-    var description: String {
-        switch self {
-            case .base: return "base"
-            case .gesturing: return "gesturing"
-            case .constrained: return "constrained"
-            case .animating: return "animating"
-        }
+    func focusing () -> [String] {
+        constraints().pan?.annotations().map { $0.id } ?? []
     }
 }
 
@@ -72,11 +65,10 @@ struct MapCameraState {
 class MapController: ObservableObject {
     /// Map view state
     @Published var state: MapViewState = .base
-    /// For interruptions of current state (caused
-    /// by card view)
-    private var previousState: MapViewState?
 
     @Published var camera = MapCameraState(center: .squamish, heading: 0, zoom: 0, pitch: 0)
+
+    @Published var transState = MapViewTransitionState.animating
 
     /// All annotations that are in .showing prop that are
     /// supposed to be kept in frame at one time
@@ -134,24 +126,6 @@ class MapController: ObservableObject {
             state = .base
         } else {
             state = .constrained(constraintsQueue)
-        }
-    }
-    func interruptState (withState state: MapViewState) {
-        if !(state ~= self.state) {
-            print("interrupting state \(self.state) with \(state)")
-            previousState = self.state
-            self.state = state
-        }
-    }
-    func endInterruption () -> MapViewState {
-        if let state = previousState {
-            self.state = state
-            previousState = nil
-            print("ending interruption from \(state) back to \(self.state)")
-            return state
-        } else {
-//            state = .base
-            return .base
         }
     }
 }
